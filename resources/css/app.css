@@ -1,0 +1,206 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* SmartCEMES Theme Variables */
+:root {
+    --lnu-blue: #003599;
+    --lnu-gold: #F6B800;
+    --lnu-blue-light: #1a51b8;
+    --lnu-blue-dark: #002050;
+}
+
+/* Base Styling */
+@layer base {
+    body {
+        @apply bg-gray-50 text-gray-900;
+    }
+
+    /* LNU Blue Links and Interactive Elements */
+    a {
+        @apply text-[#003599] hover:text-[#F6B800] transition duration-300;
+    }
+
+    button {
+        @apply transition duration-300 ease-in-out;
+    }
+}
+
+/* Custom Components */
+@layer components {
+    /* Primary Button - LNU Blue */
+    .btn-primary {
+        @apply px-4 py-2 bg-[#003599] text-white font-semibold rounded-lg hover:bg-[#002050] transition duration-300 ease-in-out;
+    }
+
+    /* Secondary Button - Gold Accent */
+    .btn-secondary {
+        @apply px-4 py-2 bg-[#F6B800] text-gray-900 font-semibold rounded-lg hover:bg-yellow-500 transition duration-300 ease-in-out;
+    }
+
+    /* Input Fields - Custom Border */
+    .input-field {
+        @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003599] focus:border-transparent transition duration-300;
+    }
+
+    /* Card Component */
+    .card {
+        @apply bg-white rounded-lg shadow-md hover:shadow-lg transition duration-300 p-6;
+    }
+
+    /* Badge Components */
+    .badge-primary {
+        @apply inline-block px-3 py-1 bg-[#003599] text-white text-sm rounded-full;
+    }
+
+    .badge-gold {
+        @apply inline-block px-3 py-1 bg-[#F6B800] text-gray-900 text-sm rounded-full;
+    }
+
+    /* Sidebar Item */
+    .sidebar-item {
+        @apply flex items-center gap-3 px-4 py-3 text-gray-700 rounded-lg border-l-4 border-transparent hover:bg-gray-100 hover:border-[#F6B800] cursor-pointer transition duration-300;
+    }
+
+    .sidebar-item svg,
+    .sidebar-item img {
+        @apply flex-shrink-0;
+    }
+
+    .sidebar-item span {
+        @apply flex-1 text-sm font-medium;
+    }
+
+    .sidebar-item.active {
+        @apply bg-gray-100 border-l-4 border-[#F6B800] text-[#003599] font-semibold;
+    }
+
+    .sidebar-item.active:hover {
+        @apply border-l-4 border-[#F6B800];
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse-gold {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(246, 184, 0, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(246, 184, 0, 0);
+    }
+}
+
+@layer utilities {
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .animate-slide-in-left {
+        animation: slideInLeft 0.6s ease-in-out;
+    }
+
+    .animate-slide-in-right {
+        animation: slideInRight 0.6s ease-in-out;
+    }
+
+    .animate-scale-in {
+        animation: scaleIn 0.4s ease-in-out;
+    }
+
+    .animate-pulse-gold {
+        animation: pulse-gold 2s infinite;
+    }
+
+    /* Hover Effects */
+    .hover-gold {
+        @apply hover:text-[#F6B800] transition duration-300;
+    }
+
+    .hover-scale {
+        @apply transition-transform duration-300 hover:scale-105;
+    }
+
+    /* Border Colors */
+    .border-lnu-blue {
+        @apply border-[#003599];
+    }
+
+    .border-lnu-gold {
+        @apply border-[#F6B800];
+    }
+
+    /* Background Colors */
+    .bg-lnu-blue {
+        @apply bg-[#003599];
+    }
+
+    .bg-lnu-gold {
+        @apply bg-[#F6B800];
+    }
+
+    .bg-lnu-blue-dark {
+        @apply bg-[#002050];
+    }
+
+    /* Text Colors */
+    .text-lnu-blue {
+        @apply text-[#003599];
+    }
+
+    .text-lnu-gold {
+        @apply text-[#F6B800];
+    }
+
+    /* Gradient */
+    .gradient-lnu {
+        background: linear-gradient(135deg, #003599 0%, #1a51b8 100%);
+    }
+
+    .gradient-lnu-reverse {
+        background: linear-gradient(135deg, #1a51b8 0%, #003599 100%);
+    }
+}

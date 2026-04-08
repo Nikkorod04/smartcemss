@@ -1,0 +1,278 @@
+=== SMARTCEMES SYSTEM BLUEPRINT v3 ===
+AI Powered Community Extension Services Monitoring & Evaluation System
+for Leyte Normal University
+
+System Name: SmartCEMES
+
+Tech Stack:
+- Laravel 11+
+- Livewire 3 + Blade
+- Laravel Breeze (Authentication)
+- MySQL Database (database name: smartcemesdb)
+- Tailwind CSS v4
+- Alpine.js (for interactivity)
+- Spatie Laravel Activity Log (Audit Logs)
+- Hugging Face Mistral-7B (via API)
+- FullCalendar.js (local files) for Calendar
+- Chart.js or ApexCharts (downloaded locally)
+
+Theme:
+Primary Blue: #003599 (LNU Blue)
+Accent Gold: #F6B800 (LNU Gold)
+Style: Minimal, clean, professional
+Animations: 
+  - Page load: fade-in + slight scale
+  - Hover: clickable texts and buttons turn gold (#F6B800)
+  - Smooth transitions
+
+=== USER ROLES ===
+- Director (role = 'director')
+- Secretary (role = 'secretary')
+- Faculty (separate Faculty model + token-based access)
+
+Only Director can:
+- Generate / revoke faculty access tokens
+- Delete Extension Programs
+- Fully manage Extension Programs (create, edit, delete)
+
+=== DATABASE ===
+Database Name: smartcemesdb
+Use MySQL / MariaDB
+
+=== MODELS & RELATIONSHIPS ===
+
+1. User
+   - id, name, email, password, role (enum: director, secretary), email_verified_at, remember_token
+   - timestamps, softDeletes
+
+2. Faculty
+   - id, user_id, employee_id, department, specialization, position, avatar (string), 
+     phone, address, notes
+   - timestamps, softDeletes
+   - BelongsTo User
+   - HasMany ExtensionProgram (as program lead)
+   - HasMany Activity (involved)
+   - HasMany FacultyAvailability
+   - HasMany ExtensionToken
+
+3. Community
+   - id, name, municipality, province, description, contact_person, contact_number, 
+     email, address, status, notes
+   - timestamps, softDeletes
+   - HasMany NeedsAssessment
+   - HasMany ExtensionProgram (related)
+
+4. ExtensionProgram
+   - id, title (varchar 150), description (text 1500), goals (text), objectives (text),
+     planned_start_date, planned_end_date, target_beneficiaries (integer),
+     beneficiary_categories (json), allocated_budget (decimal 10,2),
+     program_lead_id (foreign → Faculty), partners (json), cover_image (string),
+     gallery_images (json), related_communities (json), attachments (json),
+     status (enum: draft, ongoing, completed, cancelled), notes (text),
+     created_by, updated_by
+   - timestamps, softDeletes
+   - BelongsTo Faculty (program_lead)
+   - BelongsToMany Community
+   - HasMany Activity
+   - HasMany BudgetUtilization
+
+5. Activity
+   - id, extension_program_id, title, description, actual_start_date, actual_end_date,
+     venue, status (enum: pending, ongoing, completed), notes
+   - timestamps, softDeletes
+   - BelongsTo ExtensionProgram
+   - BelongsToMany Faculty (involved)
+   - HasMany Attendance
+
+6. Attendance
+   - id, activity_id, beneficiary_id, attendance_date, status, remarks
+   - timestamps
+   - BelongsTo Activity
+   - BelongsTo Beneficiary
+
+7. Beneficiary
+   - id, first_name, middle_name, last_name, date_of_birth, age, gender,
+     email, phone, address, barangay, municipality, province,
+     community_id, program_ids (json), beneficiary_category,
+     monthly_income, occupation, educational_attainment,
+     marital_status, number_of_dependents, status, notes,
+     created_by, updated_by
+   - timestamps, softDeletes
+   - BelongsTo Community
+   - BelongsToMany ExtensionProgram
+   - HasMany Attendance
+
+8. NeedsAssessment (F-CES-001 Community Needs Assessment Form)
+   - id, community_id, quarter (enum: Q1,Q2,Q3,Q4), year (integer),
+     file_path (string), raw_ocr_text (longtext), ai_cleaned_text (longtext),
+     uploaded_by
+   
+   === SECTION I: IDENTIFYING INFORMATION ===
+   - respondent_name (string 150)
+   - respondent_age (integer)
+   - respondent_civil_status (string 50)
+   - respondent_sex (enum: Male, Female, Other)
+   - respondent_religion (string 50)
+   - respondent_educational_attainment (json - array of: Elementary, High School, College)
+   
+   === SECTION II: FAMILY COMPOSITION ===
+   - family_composition (json - repeating group: name, age, sex, educational_attainment, employment)
+   
+   === SECTION III: ECONOMIC ASPECT ===
+   - livelihood_options (json - array of: Farming, Raising animals, Selling, Driving, Remittance, Pension, 4Ps, Rentals, Service Work, Other)
+   - interested_in_livelihood_training (enum: Yes, No)
+   - desired_training (json - array of: Cosmetology, Handicrafts, Electronics, Computer, Refrigerator & A/C, Food Processing, Dress Making, Pananom, Other)
+   
+   === SECTION IV: EDUCATIONAL ASPECT ===
+   - barangay_educational_facilities (json - array of: Daycare, Elementary Primary, Elementary Intermediate, Secondary, College)
+   - household_member_currently_studying (enum: Yes, No)
+   - interested_in_continuing_studies (enum: Yes, No)
+   - areas_of_educational_interest (json - array of: Reading, Writing, Math, English, Issues, Laws, Other)
+   - preferred_training_time (enum: Morning 8-12, Afternoon 1:30-5)
+   - preferred_training_days (json - array of: Wednesday, Saturday, Sunday)
+   
+   === SECTION V: HEALTH, SANITATION, ENVIRONMENTAL ===
+   - common_illnesses (json - array of: Colds, Flu, Asthma, Pneumonia, Diarrhea, Schistosomiasis, Hypertension, Diabetes, Vomiting, Headache, Stomach Ache, Other)
+   - action_when_sick (json - array of: Hospital/Health Center, Herbal Medicine, Albularyo, Hilot, Other)
+   - barangay_medical_supplies_available (json - array of: Ambulance, Health Center, Medical Equipment, Other)
+   - has_barangay_health_programs (enum: Yes, No)
+   - benefits_from_barangay_programs (enum: Yes, No)
+   - programs_benefited_from (json - array of: Free Vaccine, Free Consultation, Pre-natal check-up, Check-up, Free Medicine, Other)
+   - water_source (json - array of: NAWASA, Water Pump, Deep Well, Spring Water, River/Stream, Other)
+   - water_source_distance (enum: Just outside, 250 meters away, No idea)
+   - garbage_disposal_method (json - array of: Compost pit, Anywhere, In the river, Vacant lot, Other)
+   - has_own_toilet (enum: Yes, No)
+   - toilet_type (json - array of: Flush toilet, Water sealed, Antipolo style, Other)
+   - keeps_animals (enum: Yes, No)
+   - animals_kept (json - array of: Dog, Duck, Chicken, Cat, Other)
+   
+   === SECTION VI: HOUSING AND BASIC AMENITIES ===
+   - house_type (json - array of: Wood/Bamboo, Makeshift, Wood, Half concrete/wood, Nipa/Bamboo, All concrete)
+   - tenure_status (json - array of: Own house/land, Own house/rent land, Rent house, NGO/Gov't given, Squatter, Other)
+   - has_electricity (enum: Yes, No)
+   - light_source_without_power (json - array of: Oil lamp, Candle, Solar lamp)
+   - appliances_owned (json - array of: TV, Stove, Washing Machine, Gas Range, Refrigerator, Flat Iron, Rice Cooker, Computer, Electric Fan, Karaoke, Oven Toaster, Other)
+   
+   === SECTION VII: RECREATIONAL FACILITIES ===
+   - barangay_recreational_facilities (json - array of: Basketball Court, Volleyball Court, Tennis Court, Soccer Field, Other)
+   - use_of_free_time (json - array of: Playing basketball, Watching TV, Playing cards, Radio drama, Chatting, Sleeping, Staying home, Other)
+   - member_of_organization (enum: Yes, No)
+   - organization_types (json - array of: Civic, Religious, LGU, Cultural, Sports/Recreational, Other)
+   - organization_meeting_frequency (enum: Weekly, Monthly, Twice a month, Yearly)
+   - organization_usual_activities (text)
+   - household_members_in_organization (json - array of: Self, Spouse, Child, Other)
+   - position_in_organization (string 100)
+   
+   === SECTION VIII: OTHER NEEDS & PROBLEMS ===
+   - family_problems (json - array of: Cannot support family needs, Separated couple, Domestic violence, Poor family relationship, Other)
+   - health_problems (json - array of: Sickly children, House near dumpsite, Lack of health education, Lack of equipment, Lack of personnel, Malnourished, Disease outbreak, Other)
+   - educational_problems (json - array of: Lack of equipment, Lack of qualified teachers, Far school, Other)
+   - employment_problems (json - array of: Lack of employment, Lack of skills, No receiving agency, Other)
+   - infrastructure_problems (json - array of: Difficult roads, No irrigation, No waiting shed, No post harvest equipment, No electric posts, Weak bridge, Lack of classroom, Other)
+   - economic_problems (json - array of: Lack of buyers, No capital, No product transport, No livelihood ideas, Many dependents, Other)
+   - security_problems (json - array of: Always noisy, No police assigned, Theft, Other)
+   
+   === SECTION IX: SUMMARY ===
+   - barangay_service_ratings (json - object with 1-5 scale ratings for: Law Enforcement, Fire Protection, BNS Service, Street Lighting, Water system, Sanitation, Health Service, Education Service, Infrastructure Service)
+   - general_feedback (text)
+   - available_for_training (enum: Yes, No)
+   - reason_not_available (text - if No)
+   
+   - timestamps, softDeletes
+   - BelongsTo Community
+
+9. BudgetUtilization
+   - id, extension_program_id, date_spent, amount (decimal 10,2),
+     description, attachment (string), transaction_type (enum: expense, adjustment)
+   - timestamps
+   - BelongsTo ExtensionProgram
+
+10. ExtensionToken
+    - id, faculty_id, token (unique string), expires_at, generated_by
+    - timestamps
+    - BelongsTo Faculty
+
+11. FacultyAvailability
+    - id, faculty_id, date, time_slot, status (enum: pending, approved, rejected),
+      remarks (text), approved_by
+    - timestamps
+    - BelongsTo Faculty
+
+=== FACULTY PROFILE MANAGEMENT ===
+- Faculty logs in using access token
+- Has "My Profile" page where they can edit:
+  - Full name (syncs with User.name)
+  - Avatar / profile picture
+  - Department, specialization, position
+  - Phone, address
+  - Notes
+- All changes are audited via Spatie Activity Log
+
+=== PROJECT STRUCTURE & LAYOUT ===
+- Sidebar navigation (for Director & Secretary)
+- Welcome page = Login page only
+- "I'm a Faculty" button on login page → opens token login
+- Responsive design (mobile + desktop friendly)
+- Reusable components:
+  - Success/Error modals
+  - Reusable Livewire modals
+  - Page load animations
+  - Hover gold effect on buttons and links
+
+=== KEY FEATURES ===
+
+1. Authentication
+   - Laravel Breeze (Blade)
+   - Director & Secretary: email + password
+   - Faculty: separate token login route
+
+2. Dashboard
+   - Director Dashboard: charts + KPIs
+   - Secretary Dashboard: beneficiaries, forms, recent assessments
+
+3. Community Needs Assessment (Secretary)
+   - Upload Excel/CSV, PDF, Images
+   - OCR processing (queued)
+   - Manual review of OCR result
+   - AI cleaning using Mistral-7B
+   - Quarter selection (manual)
+
+4. Extension Programs (Director full control)
+   - Full CRUD with all fields
+   - Link to Communities
+   - Manage Activities (separate model)
+   - Budget Utilization tracking
+
+5. Calendar
+   - FullCalendar.js (local)
+   - Shows programs, activities, faculty availability
+   - Faculty can view + submit availability (Pending → Director approves/rejects with remarks)
+
+6. Attendance
+   - Inside each Activity → mark beneficiaries present
+
+7. AI Integration (Mistral-7B)
+   - Service class for summaries, insights, recommended interventions
+   - OCR text cleaning
+
+8. Audit Logs
+   - Spatie/laravel-activitylog on all major models
+
+=== SETUP COMMANDS ===
+
+```bash
+composer create-project laravel/laravel smartcemes "11.*"
+cd smartcemes
+
+# Database
+# Create database named: smartcemesdb in MySQL
+
+composer require livewire/livewire:^3.0
+composer require spatie/laravel-activitylog
+composer require laravel/breeze --dev
+php artisan breeze:install blade
+
+php artisan migrate
+
+npm install
+npm run dev
