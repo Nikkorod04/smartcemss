@@ -1,41 +1,39 @@
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <a href="{{ route('faculty.programs') }}" class="inline-flex items-center gap-2 text-lnu-blue hover:text-lnu-blue/80 mb-6 transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
-            <span class="font-medium">Back to Programs</span>
-        </a>
-
         <div class="bg-white rounded-lg shadow-lg p-8 space-y-6">
             <!-- Header with Status -->
             <div class="border-b border-gray-200 pb-6">
                 <div class="flex items-start justify-between mb-4">
-                    <div>
-                        <h1 class="text-4xl font-bold text-gray-900 mb-4">{{ $program->program_name }}</h1>
-                        <div class="flex items-center gap-4 flex-wrap">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold
-                                @if($program->status === 'draft') bg-yellow-100 text-yellow-800
-                                @elseif($program->status === 'ongoing') bg-green-100 text-green-800
-                                @elseif($program->status === 'completed') bg-blue-100 text-blue-800
-                                @else bg-red-100 text-red-800
-                                @endif">
-                                {{ ucfirst($program->status ?? 'Pending') }}
-                            </span>
-                            
-                            @if($isFacultyLead)
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
-                                    Program Lead
-                                </span>
-                            @elseif($isParticipant)
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">
-                                    Participant
-                                </span>
-                            @endif
-                        </div>
+                    <div class="flex items-center gap-3">
+                        <a href="{{ route('faculty.programs') }}" class="text-lnu-blue hover:text-lnu-blue/80 transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </a>
+                        <h1 class="text-4xl font-bold text-gray-900">{{ $program->program_name }}</h1>
                     </div>
                 </div>
-                <p class="text-gray-600">Created {{ $program->created_at->diffForHumans() }}</p>
+                <div class="flex items-center gap-4 flex-wrap">
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold
+                        @if($program->status === 'draft') bg-yellow-100 text-yellow-800
+                        @elseif($program->status === 'ongoing') bg-green-100 text-green-800
+                        @elseif($program->status === 'completed') bg-blue-100 text-blue-800
+                        @else bg-red-100 text-red-800
+                        @endif">
+                        {{ ucfirst($program->status ?? 'Pending') }}
+                    </span>
+                    
+                    @if($isFacultyLead)
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
+                            Program Lead
+                        </span>
+                    @elseif($isParticipant)
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-purple-100 text-purple-800">
+                            Participant
+                        </span>
+                    @endif
+                </div>
+                <p class="text-gray-600 mt-3">Created {{ $program->created_at->diffForHumans() }}</p>
             </div>
 
             <!-- Cover Image -->
