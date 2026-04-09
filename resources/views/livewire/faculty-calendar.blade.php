@@ -125,7 +125,6 @@
                 });
             }
         },
-        selectConstraint: 'businessHours',
         editable: true,
         eventEditable: true,
         selectable: true,
@@ -144,10 +143,14 @@ function openCreateModal(startStr, endStr) {
     const endInput = document.getElementById('activityEnd');
 
     if (startStr) {
-        startInput.value = startStr;
+        // Format: if it's just a date (YYYY-MM-DD), add default time
+        const formattedStart = startStr.includes('T') ? startStr : startStr + 'T08:00';
+        startInput.value = formattedStart.substring(0, 16); // HH:mm format
     }
     if (endStr) {
-        endInput.value = endStr;
+        // Format: if it's just a date (YYYY-MM-DD), add default time
+        const formattedEnd = endStr.includes('T') ? endStr : endStr + 'T09:00';
+        endInput.value = formattedEnd.substring(0, 16); // HH:mm format
     }
 
     modal.classList.remove('hidden');
