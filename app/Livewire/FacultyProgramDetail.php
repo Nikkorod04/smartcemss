@@ -16,8 +16,9 @@ class FacultyProgramDetail extends Component
 
     public function render()
     {
-        $isFacultyLead = $this->program->program_lead_id == auth()->user()->faculty->id ?? null;
         $faculty = auth()->user()->faculty;
+        
+        $isFacultyLead = $faculty && $this->program->program_lead_id == $faculty->id;
         $isParticipant = $faculty && $faculty->activities()->whereHas('extensionProgram', function ($query) {
             $query->where('id', $this->program->id);
         })->exists();
