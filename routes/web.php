@@ -7,7 +7,9 @@ use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\NeedsAssessmentController;
 use App\Http\Controllers\FacultyController;
-use App\Http\Controllers\FacultyProfileController;
+use App\Livewire\FacultyDashboard;
+use App\Livewire\FacultyPrograms;
+use App\Livewire\FacultyCalendar;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -58,7 +60,9 @@ Route::middleware('auth')->group(function () {
 
     // Faculty portal (Faculty only)
     Route::middleware('faculty')->group(function () {
-        Route::get('/faculty/profile', [FacultyProfileController::class, 'show'])->name('faculty.profile');
+        Route::get('/faculty/dashboard', FacultyDashboard::class)->name('faculty.dashboard');
+        Route::get('/faculty/programs', FacultyPrograms::class)->name('faculty.programs');
+        Route::get('/faculty/calendar', FacultyCalendar::class)->name('faculty.calendar');
     });
 });
 

@@ -46,7 +46,7 @@ class FacultyAuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('faculty.profile'));
+        return redirect()->intended(route('faculty.dashboard'));
     }
 
     /**
