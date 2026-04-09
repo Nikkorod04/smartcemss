@@ -4,52 +4,40 @@
         <div id="calendar"></div>
     </div>
 
-    <!-- Create Activity Modal -->
-    <div id="createActivityModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md max-h-96 overflow-y-auto">
-            <div class="sticky top-0 bg-white border-b border-gray-200 p-6">
-                <h2 class="text-2xl font-bold text-lnu-blue">Create Activity</h2>
+    <!-- Add Availability Modal -->
+    <div id="addAvailabilityModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md">
+            <div class="bg-white border-b border-gray-200 p-6">
+                <h2 class="text-2xl font-bold text-lnu-blue">Add Your Availability</h2>
+                <p class="text-gray-600 text-sm mt-1">Let the director know when you're available</p>
             </div>
-            <form id="createActivityForm" class="p-6 space-y-4">
+            <form id="addAvailabilityForm" class="p-6 space-y-4">
                 @csrf
                 <div>
-                    <label class="block text-sm font-medium text-gray-900 mb-1">Activity Title</label>
-                    <input type="text" id="activityTitle" name="title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue" required>
+                    <label class="block text-sm font-medium text-gray-900 mb-1">Date</label>
+                    <input type="date" id="availabilityDate" name="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue" required>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-900 mb-1">Program</label>
-                    <select id="programSelect" name="extension_program_id" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue" required>
-                        <option value="">Select a program...</option>
+                    <label class="block text-sm font-medium text-gray-900 mb-1">Time Slot</label>
+                    <select id="availabilityTimeSlot" name="time_slot" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue" required>
+                        <option value="">Select time slot...</option>
+                        <option value="Morning (8:00 AM - 12:00 PM)">Morning (8:00 AM - 12:00 PM)</option>
+                        <option value="Afternoon (1:00 PM - 5:00 PM)">Afternoon (1:00 PM - 5:00 PM)</option>
+                        <option value="Evening (5:00 PM - 9:00 PM)">Evening (5:00 PM - 9:00 PM)</option>
                     </select>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-900 mb-1">Start Date</label>
-                        <input type="datetime-local" id="activityStart" name="actual_start_date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-900 mb-1">End Date</label>
-                        <input type="datetime-local" id="activityEnd" name="actual_end_date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue" required>
-                    </div>
-                </div>
-
                 <div>
-                    <label class="block text-sm font-medium text-gray-900 mb-1">Venue</label>
-                    <input type="text" id="activityVenue" name="venue" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-900 mb-1">Description</label>
-                    <textarea id="activityDescription" name="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue"></textarea>
+                    <label class="block text-sm font-medium text-gray-900 mb-1">Remarks (Optional)</label>
+                    <textarea id="availabilityRemarks" name="remarks" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue" placeholder="Any additional notes..."></textarea>
                 </div>
 
                 <div class="flex gap-3 pt-4">
                     <button type="submit" class="flex-1 bg-lnu-blue text-white py-2 px-4 rounded-md hover:bg-blue-700 transition font-medium">
-                        Create Activity
+                        Add Availability
                     </button>
-                    <button type="button" onclick="closeCreateModal()" class="flex-1 bg-gray-300 text-gray-900 py-2 px-4 rounded-md hover:bg-gray-400 transition font-medium">
+                    <button type="button" onclick="closeAvailabilityModal()" class="flex-1 bg-gray-300 text-gray-900 py-2 px-4 rounded-md hover:bg-gray-400 transition font-medium">
                         Cancel
                     </button>
                 </div>
@@ -129,73 +117,61 @@
         eventEditable: true,
         selectable: true,
         select: function(info) {
-            // Open create activity modal when clicking empty space
-            openCreateModal(info.startStr, info.endStr);
+            // Open availability modal when clicking empty space (faculty only - set availability)
+            openAvailabilityModal(info.startStr);
         }
     });
 
     calendar.render();
 });
 
-function openCreateModal(startStr, endStr) {
-    const modal = document.getElementById('createActivityModal');
-    const startInput = document.getElementById('activityStart');
-    const endInput = document.getElementById('activityEnd');
+function openAvailabilityModal(dateStr) {
+    const modal = document.getElementById('addAvailabilityModal');
+    const dateInput = document.getElementById('availabilityDate');
 
-    if (startStr) {
-        // Format: if it's just a date (YYYY-MM-DD), add default time
-        const formattedStart = startStr.includes('T') ? startStr : startStr + 'T08:00';
-        startInput.value = formattedStart.substring(0, 16); // HH:mm format
-    }
-    if (endStr) {
-        // Format: if it's just a date (YYYY-MM-DD), add default time
-        const formattedEnd = endStr.includes('T') ? endStr : endStr + 'T09:00';
-        endInput.value = formattedEnd.substring(0, 16); // HH:mm format
+    if (dateStr) {
+        // Extract just the date part (YYYY-MM-DD)
+        const dateOnly = dateStr.substring(0, 10);
+        dateInput.value = dateOnly;
     }
 
     modal.classList.remove('hidden');
 }
 
-function closeCreateModal() {
-    document.getElementById('createActivityModal').classList.add('hidden');
-    document.getElementById('createActivityForm').reset();
+function closeAvailabilityModal() {
+    document.getElementById('addAvailabilityModal').classList.add('hidden');
+    document.getElementById('addAvailabilityForm').reset();
 }
 
-// Handle form submission
-document.getElementById('createActivityForm').addEventListener('submit', function(e) {
+// Handle availability form submission
+document.getElementById('addAvailabilityForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
-    const formData = {
-        title: document.getElementById('activityTitle').value,
-        extension_program_id: document.getElementById('programSelect').value,
-        actual_start_date: document.getElementById('activityStart').value.split('T')[0],
-        actual_end_date: document.getElementById('activityEnd').value.split('T')[0],
-        venue: document.getElementById('activityVenue').value,
-        description: document.getElementById('activityDescription').value,
-    };
+    const formData = new FormData();
+    formData.append('date', document.getElementById('availabilityDate').value);
+    formData.append('time_slot', document.getElementById('availabilityTimeSlot').value);
+    formData.append('remarks', document.getElementById('availabilityRemarks').value);
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
 
-    fetch('{{ route("api.calendar.activities.create") }}', {
+    fetch('{{ route("faculty.availability.store") }}', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify(formData)
+        body: formData
     })
-    .then(response => response.json())
+    .then(response => response.text())
     .then(data => {
-        if (data.success) {
-            showNotification('success', data.message);
-            closeCreateModal();
-            // Reload calendar events
-            location.reload();
+        // Check if response contains success message
+        if (data.includes('success') || response.ok) {
+            showNotification('success', 'Availability submitted for approval!');
+            closeAvailabilityModal();
+            // Reload page to see updated availability
+            setTimeout(() => location.reload(), 1000);
         } else {
-            showNotification('error', data.error || 'Failed to create activity');
+            showNotification('error', 'Failed to submit availability');
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('error', 'Failed to create activity');
+        showNotification('error', 'Failed to submit availability');
     });
 });
 
