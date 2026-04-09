@@ -61,7 +61,7 @@ class EditProfessionalInfoModal extends Component
             ->log('Faculty profile professional information updated');
 
         $this->showModal = false;
-        $this->dispatch('alert', type: 'success', message: 'Professional information updated successfully!');
+        $this->dispatch('show-success-modal', message: 'Professional information has been updated successfully!', title: 'Success');
     }
 
     public function render()

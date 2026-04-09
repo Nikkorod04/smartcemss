@@ -66,7 +66,7 @@ class EditPersonalInfoModal extends Component
             ->log('Faculty profile personal information updated');
 
         $this->showModal = false;
-        $this->dispatch('alert', type: 'success', message: 'Personal information updated successfully!');
+        $this->dispatch('show-success-modal', message: 'Personal information has been updated successfully!', title: 'Success');
     }
 
     public function render()

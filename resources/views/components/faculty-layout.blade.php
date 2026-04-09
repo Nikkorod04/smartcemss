@@ -99,6 +99,9 @@
             </div>
         </div>
 
+        <!-- Success/Error Modal -->
+        <livewire:success-modal />
+
         @livewireScripts
     </body>
 </html>

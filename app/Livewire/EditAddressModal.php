@@ -53,7 +53,7 @@ class EditAddressModal extends Component
             ->log('Faculty profile address updated');
 
         $this->showModal = false;
-        $this->dispatch('alert', type: 'success', message: 'Address updated successfully!');
+        $this->dispatch('show-success-modal', message: 'Address has been updated successfully!', title: 'Success');
     }
 
     public function render()
