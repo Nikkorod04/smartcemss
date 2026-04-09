@@ -85,7 +85,7 @@
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-3">
                                             <div class="w-2 h-2 bg-amber-500 rounded-full"></div>
-                                            <span class="font-semibold text-gray-900">{{ $activity->activity_name ?? 'Activity' }}</span>
+                                            <span class="font-semibold text-gray-900">{{ $activity->title ?? 'Activity' }}</span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">

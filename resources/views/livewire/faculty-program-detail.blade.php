@@ -125,7 +125,7 @@
                                 <tbody class="divide-y divide-gray-200">
                                     @foreach ($program->activities as $activity)
                                     <tr class="hover:bg-gray-50 transition">
-                                        <td class="px-4 py-3 font-medium text-gray-900">{{ $activity->activity_name }}</td>
+                                        <td class="px-4 py-3 font-medium text-gray-900">{{ $activity->title }}</td>
                                         <td class="px-4 py-3 text-gray-600">
                                             {{ $activity->planned_start_date?->format('M d, Y') ?? 'TBD' }}
                                         </td>

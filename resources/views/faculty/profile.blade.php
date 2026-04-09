@@ -202,7 +202,7 @@
                     <div class="p-6 hover:bg-gray-50 transition">
                         <div class="flex items-start justify-between">
                             <div class="flex-grow">
-                                <h4 class="font-semibold text-gray-900">{{ $activity->activity_name ?? 'Activity' }}</h4>
+                                <h4 class="font-semibold text-gray-900">{{ $activity->title ?? 'Activity' }}</h4>
                                 <p class="text-gray-600 text-sm mt-1">
                                     @if($activity->actual_start_date)
                                         Started: {{ $activity->actual_start_date->format('M d, Y') }}
