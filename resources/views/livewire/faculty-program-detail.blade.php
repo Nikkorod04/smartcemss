@@ -3,15 +3,13 @@
         <div class="bg-white rounded-lg shadow-lg p-8 space-y-6">
             <!-- Header with Status -->
             <div class="border-b border-gray-200 pb-6">
-                <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <a href="{{ route('faculty.programs') }}" class="text-lnu-blue hover:text-lnu-blue/80 transition">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </a>
-                        <h1 class="text-4xl font-bold text-gray-900">{{ $program->program_name }}</h1>
-                    </div>
+                <div class="flex items-center gap-3 mb-4">
+                    <a href="{{ route('faculty.programs') }}" class="text-lnu-blue hover:text-lnu-blue/80 transition flex-shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+                    <h1 class="text-4xl font-bold text-gray-900">{{ $program->program_name }}</h1>
                 </div>
                 <div class="flex items-center gap-4 flex-wrap">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold
