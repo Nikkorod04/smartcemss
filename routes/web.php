@@ -7,6 +7,7 @@ use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\NeedsAssessmentController;
 use App\Http\Controllers\FacultyController;
+use App\Http\Controllers\FacultyProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -54,6 +55,11 @@ Route::middleware('auth')->group(function () {
     Route::resource('faculties', FacultyController::class);
     Route::post('/faculties/{faculty}/generate-token', [FacultyController::class, 'generateToken'])->name('faculties.generateToken');
     Route::delete('/tokens/{token}/revoke', [FacultyController::class, 'revokeToken'])->name('tokens.revoke');
+
+    // Faculty portal (Faculty only)
+    Route::middleware('faculty')->group(function () {
+        Route::get('/faculty/profile', [FacultyProfileController::class, 'show'])->name('faculty.profile');
+    });
 });
 
 require __DIR__.'/auth.php';
