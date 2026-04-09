@@ -45,9 +45,9 @@
             </div>
             @endif
 
-            <div class="grid grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- Left Column -->
-                <div class="col-span-2 space-y-6">
+                <div class="lg:col-span-2 space-y-6">
                     <!-- Overview -->
                     <div class="border border-gray-200 rounded-lg p-6">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4">Overview</h2>
@@ -148,9 +148,9 @@
                 </div>
 
                 <!-- Right Sidebar -->
-                <div class="col-span-1 space-y-6">
+                <div class="lg:col-span-1 space-y-6">
                     <!-- Program Lead Card -->
-                    <div class="border border-gray-200 rounded-lg p-6 sticky top-20">
+                    <div class="border border-gray-200 rounded-lg p-6">
                         <h3 class="text-lg font-bold text-gray-900 mb-4">Program Lead</h3>
                         @if ($program->programLead)
                         <div class="flex items-center gap-3 mb-4">
