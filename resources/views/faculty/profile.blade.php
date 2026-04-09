@@ -1,7 +1,9 @@
-@extends('layouts.app')
+<x-admin-layout>
+    <x-slot name="header">
+        Faculty Profile
+    </x-slot>
 
-@section('content')
-<div class="py-12 bg-gray-50 min-h-screen">
+    <div class="py-12 bg-gray-50 min-h-screen">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Profile Header -->
         <div class="bg-white rounded-lg shadow-md p-8 mb-8">
@@ -243,4 +245,4 @@
         alert(data.message || 'Changes saved successfully!');
     });
 </script>
-@endsection
+</x-admin-layout>
