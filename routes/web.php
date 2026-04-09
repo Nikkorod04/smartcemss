@@ -7,6 +7,8 @@ use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\NeedsAssessmentController;
 use App\Http\Controllers\FacultyController;
+use App\Http\Controllers\FacultyAvailabilityController;
+use App\Http\Controllers\CalendarController;
 use App\Livewire\FacultyDashboard;
 use App\Livewire\FacultyPrograms;
 use App\Livewire\FacultyCalendar;
@@ -58,13 +60,37 @@ Route::middleware('auth')->group(function () {
     Route::post('/faculties/{faculty}/generate-token', [FacultyController::class, 'generateToken'])->name('faculties.generateToken');
     Route::delete('/tokens/{token}/revoke', [FacultyController::class, 'revokeToken'])->name('tokens.revoke');
 
+    // Faculty availability approval (Director only)
+    Route::middleware('auth')->group(function () {
+        Route::post('/availability/{availability}/approve', [FacultyAvailabilityController::class, 'approve'])
+            ->name('availability.approve')
+            ->middleware('director');
+        Route::post('/availability/{availability}/reject', [FacultyAvailabilityController::class, 'reject'])
+            ->name('availability.reject')
+            ->middleware('director');
+        Route::get('/availability/pending', function () {
+            return view('availability.pending');
+        })->name('availability.pending')->middleware('director');
+    });
+
     // Faculty portal (Faculty only)
     Route::middleware('faculty')->group(function () {
         Route::get('/faculty/dashboard', FacultyDashboard::class)->name('faculty.dashboard');
         Route::get('/faculty/programs', FacultyPrograms::class)->name('faculty.programs');
         Route::get('/faculty/programs/{program}', \App\Livewire\FacultyProgramDetail::class)->name('faculty.programs.show');
         Route::get('/faculty/calendar', FacultyCalendar::class)->name('faculty.calendar');
+        Route::get('/faculty/availability', [FacultyAvailabilityController::class, 'index'])->name('faculty.availability.index');
+        Route::post('/faculty/availability', [FacultyAvailabilityController::class, 'store'])->name('faculty.availability.store');
+        Route::delete('/faculty/availability/{availability}', [FacultyAvailabilityController::class, 'destroy'])->name('faculty.availability.destroy');
     });
+
+    // Calendar API endpoints (Faculty, Director, Secretary)
+    Route::get('/api/calendar/events', [CalendarController::class, 'getEvents'])->name('api.calendar.events');
+    Route::post('/api/calendar/events/update', [CalendarController::class, 'updateEvent'])->name('api.calendar.events.update');
+    Route::post('/api/calendar/activities/create', [CalendarController::class, 'createActivity'])->name('api.calendar.activities.create');
+
+    // Admin calendar page (Director/Secretary)
+    Route::view('/calendar', 'calendar.index')->name('calendar.index');
 });
 
 require __DIR__.'/auth.php';
