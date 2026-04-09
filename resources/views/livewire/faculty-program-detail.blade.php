@@ -158,11 +158,11 @@
                                 <p class="text-sm text-gray-600">Faculty</p>
                             </div>
                         </div>
-                        @if ($program->programLead->email)
+                        @if ($program->programLead->user->email)
                         <div class="bg-gray-50 rounded-lg p-3 mb-3">
                             <p class="text-xs text-gray-600 mb-1">Email</p>
-                            <a href="mailto:{{ $program->programLead->email }}" class="text-sm font-medium text-lnu-blue hover:underline break-all">
-                                {{ $program->programLead->email }}
+                            <a href="mailto:{{ $program->programLead->user->email }}" class="text-sm font-medium text-lnu-blue hover:underline break-all">
+                                {{ $program->programLead->user->email }}
                             </a>
                         </div>
                         @endif

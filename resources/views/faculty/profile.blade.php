@@ -150,7 +150,7 @@
                     @foreach($programsLed as $program)
                     <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
                         <div class="flex items-start justify-between mb-3">
-                            <h4 class="font-semibold text-gray-900">{{ $program->program_name }}</h4>
+                            <h4 class="font-semibold text-gray-900">{{ $program->title }}</h4>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                 Lead
                             </span>
@@ -174,7 +174,7 @@
                     @foreach($programsInvolved as $program)
                     <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
                         <div class="flex items-start justify-between mb-3">
-                            <h4 class="font-semibold text-gray-900">{{ $program->program_name }}</h4>
+                            <h4 class="font-semibold text-gray-900">{{ $program->title }}</h4>
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                 Involved
                             </span>
