@@ -9,7 +9,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                     </a>
-                    <h1 class="text-4xl font-bold text-gray-900">{{ $program->program_name }}</h1>
+                    <h1 class="text-4xl font-bold text-gray-900">{{ $program->title }}</h1>
                 </div>
                 <div class="flex items-center gap-4 flex-wrap">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold
@@ -37,7 +37,7 @@
             <!-- Cover Image -->
             @if ($program->cover_image)
             <div class="rounded-lg overflow-hidden shadow-md">
-                <img src="{{ asset('storage/' . $program->cover_image) }}" alt="{{ $program->program_name }}" class="w-full h-80 object-cover">
+                <img src="{{ asset('storage/' . $program->cover_image) }}" alt="{{ $program->title }}" class="w-full h-80 object-cover">
             </div>
             @endif
 

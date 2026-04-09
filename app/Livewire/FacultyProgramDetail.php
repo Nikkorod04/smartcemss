@@ -28,7 +28,7 @@ class FacultyProgramDetail extends Component
             'isFacultyLead' => $isFacultyLead,
             'isParticipant' => $isParticipant,
         ])->layout('components.faculty-layout', [
-            'header' => $this->program->program_name
+            'header' => $this->program->title
         ]);
     }
 }

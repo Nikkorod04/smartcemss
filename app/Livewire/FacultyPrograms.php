@@ -22,12 +22,14 @@ class FacultyPrograms extends Component
             ->where('program_lead_id', $this->faculty->id)
             ->get();
 
+        // Get unique programs from activities
         $programsInvolved = $this->faculty->activities()
             ->with('extensionProgram')
-            ->distinct()
             ->get()
             ->pluck('extensionProgram')
-            ->unique('id');
+            ->filter()
+            ->unique('id')
+            ->values();
 
         $activities = $this->faculty->activities()
             ->with('extensionProgram')

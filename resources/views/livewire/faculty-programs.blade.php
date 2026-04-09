@@ -17,7 +17,7 @@
                     <a href="{{ route('faculty.programs.show', $program) }}" class="group bg-gray-50 rounded-lg hover:shadow-lg transition-all duration-300 border border-gray-200 overflow-hidden hover:border-lnu-blue cursor-pointer block">
                         <div class="p-6">
                             <div class="flex items-start justify-between mb-3">
-                                <h5 class="font-semibold text-gray-900 text-lg flex-1 group-hover:text-lnu-blue transition">{{ $program->program_name }}</h5>
+                                <h5 class="font-semibold text-gray-900 text-lg flex-1 group-hover:text-lnu-blue transition">{{ $program->title }}</h5>
                                 <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-blue-100 text-blue-800 ml-2 flex-shrink-0">
                                     Lead
                                 </span>
@@ -38,7 +38,7 @@
                     <a href="{{ route('faculty.programs.show', $program) }}" class="group bg-gray-50 rounded-lg hover:shadow-lg transition-all duration-300 border border-gray-200 overflow-hidden hover:border-purple-600 cursor-pointer block">
                         <div class="p-6">
                             <div class="flex items-start justify-between mb-3">
-                                <h5 class="font-semibold text-gray-900 text-lg flex-1 group-hover:text-purple-600 transition">{{ $program->program_name }}</h5>
+                                <h5 class="font-semibold text-gray-900 text-lg flex-1 group-hover:text-purple-600 transition">{{ $program->title }}</h5>
                                 <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-purple-100 text-purple-800 ml-2 flex-shrink-0">
                                     Participant
                                 </span>
@@ -90,7 +90,7 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <span class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700">
-                                            {{ $activity->extensionProgram?->program_name ?? 'N/A' }}
+                                            {{ $activity->extensionProgram?->title ?? 'N/A' }}
                                         </span>
                                     </td>
                                     <td class="px-6 py-4">
