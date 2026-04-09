@@ -67,7 +67,7 @@
                     </a>
 
                     <!-- Calendar -->
-                    <a href="#" class="sidebar-item hover:bg-gray-100">
+                    <a href="{{ route('calendar.index') }}" class="sidebar-item {{ request()->routeIs('calendar.*') ? 'active' : '' }}">
                         <img src="{{ asset('icons/calendar.png') }}" alt="Calendar" class="w-5 h-5 object-contain">
                         <span>Calendar</span>
                     </a>
