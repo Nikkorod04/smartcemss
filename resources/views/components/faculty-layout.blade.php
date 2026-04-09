@@ -32,10 +32,8 @@
                 <nav class="flex-1 px-2 py-6 space-y-1 overflow-y-auto">
                     <!-- Dashboard -->
                     <a href="{{ route('faculty.dashboard') }}" class="sidebar-item {{ request()->routeIs('faculty.dashboard') ? 'active' : '' }}">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 4v4m0 0H9m3 0h3" />
-                        </svg>
-                        <span>Dashboard</span>
+                        <img src="{{ asset('icons/faculty.png') }}" alt="Profile" class="w-5 h-5 object-contain">
+                        <span>Profile</span>
                     </a>
 
                     <!-- Programs -->
