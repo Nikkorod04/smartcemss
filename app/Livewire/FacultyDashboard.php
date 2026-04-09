@@ -43,7 +43,7 @@ class FacultyDashboard extends Component
             'programsInvolved' => $programsInvolved,
             'recentActivities' => $recentActivities,
         ])->layout('components.faculty-layout', [
-            'header' => 'Dashboard'
+            'header' => 'Profile'
         ]);
     }
 }

@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('faculty')->group(function () {
         Route::get('/faculty/dashboard', FacultyDashboard::class)->name('faculty.dashboard');
         Route::get('/faculty/programs', FacultyPrograms::class)->name('faculty.programs');
+        Route::get('/faculty/programs/{program}', \App\Livewire\FacultyProgramDetail::class)->name('faculty.programs.show');
         Route::get('/faculty/calendar', FacultyCalendar::class)->name('faculty.calendar');
     });
 });
