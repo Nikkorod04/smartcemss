@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use App\Models\NeedsAssessment;
 use App\Models\Community;
+use App\Services\AssessmentDocumentParser;
+use App\Services\AssessmentFieldMapper;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
@@ -22,6 +24,12 @@ class AssessmentForm extends Component
     public $quarter;
     public $year;
     public $assessment_file;
+
+    // File import properties
+    public $importedData = [];
+    public $importStatus = null;
+    public $importMessage = '';
+    public $showImportedDataReview = false;
 
     // SECTION I - Respondent Info
     public $respondent_first_name;
@@ -112,8 +120,48 @@ class AssessmentForm extends Component
             $this->assessment = $assessment;
             $this->loadData();
         } else {
+            // Initialize for new assessment
             $this->year = now()->year;
+            $this->initializeNewAssessment();
         }
+    }
+
+    public function initializeNewAssessment()
+    {
+        // Ensure all checkbox/array fields are empty for new form
+        $this->respondent_educational_attainment = [];
+        $this->livelihood_options = [];
+        $this->desired_training = [];
+        $this->barangay_educational_facilities = [];
+        $this->areas_of_educational_interest = [];
+        $this->preferred_training_days = [];
+        $this->common_illnesses = [];
+        $this->action_when_sick = [];
+        $this->barangay_medical_supplies_available = [];
+        $this->programs_benefited_from = [];
+        $this->water_source = [];
+        $this->garbage_disposal_method = [];
+        $this->toilet_type = [];
+        $this->animals_kept = [];
+        $this->house_type = [];
+        $this->tenure_status = [];
+        $this->light_source_without_power = [];
+        $this->appliances_owned = [];
+        $this->barangay_recreational_facilities = [];
+        $this->use_of_free_time = [];
+        $this->organization_types = [];
+        $this->household_members_in_organization = [];
+        $this->family_problems = [];
+        $this->health_problems = [];
+        $this->educational_problems = [];
+        $this->employment_problems = [];
+        $this->infrastructure_problems = [];
+        $this->economic_problems = [];
+        $this->security_problems = [];
+        $this->barangay_service_ratings = [];
+        
+        // Update conditional fields
+        $this->updateConditionalFields();
     }
 
     public function loadData()
@@ -249,6 +297,79 @@ class AssessmentForm extends Component
 
         // Show reason_not_available if not available for training
         $this->show_reason_not_available = $this->available_for_training === 'No';
+    }
+
+    /**
+     * Handle file upload and process document
+     */
+    public function updatedAssessmentFile()
+    {
+        if (!$this->assessment_file) {
+            return;
+        }
+
+        try {
+            // Validate file
+            $this->validate([
+                'assessment_file' => 'required|file|mimes:pdf,xlsx,csv,jpg,jpeg,png|max:10240',
+            ]);
+
+            // Parse document
+            $parser = new AssessmentDocumentParser();
+            $result = $parser->parse($this->assessment_file);
+
+            if (!$result['success']) {
+                $this->importStatus = 'error';
+                $this->importMessage = $result['error'] ?? 'Failed to process file';
+                return;
+            }
+
+            // Map extracted data to form fields
+            $mapper = new AssessmentFieldMapper();
+            $mappedData = $mapper->mapDataToFields($result, $result['type']);
+
+            // Store imported data for review
+            $this->importedData = $mappedData;
+            $this->importStatus = 'success';
+            $this->importMessage = 'File processed successfully! Review and confirm the extracted data below.';
+            $this->showImportedDataReview = true;
+        } catch (\Exception $e) {
+            $this->importStatus = 'error';
+            $this->importMessage = 'Error processing file: ' . $e->getMessage();
+        }
+    }
+
+    /**
+     * Populate form fields with imported data
+     */
+    public function populateFromImportedData()
+    {
+        if (empty($this->importedData)) {
+            return;
+        }
+
+        foreach ($this->importedData as $fieldName => $value) {
+            // Use reflection to dynamically set property
+            if (property_exists($this, $fieldName)) {
+                $this->$fieldName = $value;
+            }
+        }
+
+        $this->showImportedDataReview = false;
+        $this->importStatus = null;
+        session()->flash('info', 'Form fields have been populated with imported data. Please review and make any corrections before submitting.');
+    }
+
+    /**
+     * Clear imported data
+     */
+    public function clearImportedData()
+    {
+        $this->importedData = [];
+        $this->importStatus = null;
+        $this->importMessage = '';
+        $this->showImportedDataReview = false;
+        $this->assessment_file = null;
     }
 
     public function submit()

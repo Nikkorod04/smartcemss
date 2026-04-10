@@ -7,12 +7,22 @@
                 <p class="text-gray-600 mt-1">Manage and review community needs assessment forms</p>
             </div>
 
-            <a href="{{ route('assessments.create') }}" class="btn-primary flex items-center gap-2">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.5H7a1 1 0 100 2h3a1 1 0 001-1V7z" clip-rule="evenodd" />
-                </svg>
-                New Assessment
-            </a>
+            <div class="flex gap-2">
+                <div class="flex gap-2 border-r pr-4">
+                    <a href="{{ route('assessment.template.csv') }}" class="btn-secondary flex items-center gap-2" download>
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586l1.293-1.293a1 1 0 111.414 1.414l-2 2a1 1 0 01-1.414 0l-2-2a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                        CSV Template
+                    </a>
+                </div>
+                <a href="{{ route('assessments.create') }}" class="btn-primary flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.5H7a1 1 0 100 2h3a1 1 0 001-1V7z" clip-rule="evenodd" />
+                    </svg>
+                    New Assessment
+                </a>
+            </div>
         </div>
 
         <!-- Search and Filter Section -->

@@ -67,6 +67,46 @@
                 <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, XLSX, CSV, JPG, PNG (Max 10MB)</p>
                 @error('assessment_file')<span class="text-red-600 text-sm">{{ $message }}</span>@enderror
             </div>
+
+            <!-- Import Status Message -->
+            @if($importStatus)
+            <div class="mt-4 p-4 rounded-lg {{ $importStatus === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200' }}">
+                <p class="text-sm {{ $importStatus === 'success' ? 'text-green-800' : 'text-red-800' }}">
+                    {{ $importMessage }}
+                </p>
+            </div>
+            @endif
+
+            <!-- Imported Data Review Section -->
+            @if($showImportedDataReview && !empty($importedData))
+            <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 class="text-md font-semibold text-blue-900 mb-4">Extracted Data Preview</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    @foreach($importedData as $fieldName => $value)
+                        <div class="p-3 bg-white border border-gray-200 rounded">
+                            <p class="text-xs font-medium text-gray-600">{{ str_replace('_', ' ', $fieldName) }}</p>
+                            <p class="text-sm text-gray-900 font-medium mt-1">
+                                @if(is_array($value))
+                                    {{ implode(', ', $value) }}
+                                @else
+                                    {{ $value }}
+                                @endif
+                            </p>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" wire:click="populateFromImportedData" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
+                        Confirm & Populate Fields
+                    </button>
+                    <button type="button" wire:click="clearImportedData" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-medium transition">
+                        Clear & Re-upload
+                    </button>
+                </div>
+            </div>
+            @endif
         </div>
         @endif
         @endif

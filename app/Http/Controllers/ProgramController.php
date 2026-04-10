@@ -16,11 +16,7 @@ class ProgramController extends Controller
      */
     public function index()
     {
-        $programs = ExtensionProgram::with('programLead', 'communities')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-
-        return view('programs.index', compact('programs'));
+        return view('programs.index');
     }
 
     /**

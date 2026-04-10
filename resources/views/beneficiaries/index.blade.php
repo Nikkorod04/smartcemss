@@ -1,19 +1,5 @@
 <x-admin-layout header="Beneficiaries">
     <div class="bg-white rounded-lg shadow-lg -mx-6 -my-8 md:-mx-8 md:-my-8 p-6 md:p-8 space-y-6">
-        <!-- Header with Actions -->
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-lnu-blue">Beneficiaries</h1>
-                <p class="text-gray-600 mt-1">Manage program beneficiaries and participants</p>
-            </div>
-
-            <a href="{{ route('beneficiaries.create') }}" class="btn-primary flex items-center gap-2">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" fill-rule="evenodd" />
-                </svg>
-                Add Beneficiary
-            </a>
-        </div>
 
         <!-- Search and Filter Section -->
         <div class="border-t border-gray-200 pt-6">
@@ -155,4 +141,13 @@
             @endif
         </div>
     </div>
+
+    <!-- Floating Action Button - Add Beneficiary -->
+    <a href="{{ route('beneficiaries.create') }}" 
+       class="fixed bottom-8 right-8 z-40 w-16 h-16 bg-lnu-blue hover:bg-blue-700 text-white rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 flex items-center justify-center group"
+       title="Add New Beneficiary">
+        <svg class="w-8 h-8 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+    </a>
 </x-admin-layout>

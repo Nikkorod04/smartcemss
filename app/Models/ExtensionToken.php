@@ -60,7 +60,13 @@ class ExtensionToken extends Model
             return 'Expired (' . $this->expires_at->format('M d, Y') . ')';
         }
         
-        $days = now()->diffInDays($this->expires_at);
+        // Check if less than 24 hours remaining
+        $hours = (float) now()->diffInRealHours($this->expires_at);
+        if ($hours < 24) {
+            return 'Expires in ' . (int) ceil($hours) . ' hours';
+        }
+        
+        $days = (int) now()->diffInDays($this->expires_at);
         if ($days === 0) {
             return 'Expires today';
         }

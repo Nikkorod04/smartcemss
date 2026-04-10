@@ -236,9 +236,47 @@
                             <p class="text-2xl font-bold text-lnu-blue">{{ $program->target_beneficiaries }}</p>
                         </div>
 
-                        <div class="border-t border-gray-200 pt-4">
-                            <p class="text-sm text-gray-600">Allocated Budget</p>
+                        <div class="border-t border-gray-200 pt-4" x-data="{ showBudgetSources: false }">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm text-gray-600">Allocated Budget</p>
+                                <button type="button" 
+                                        class="text-gray-400 hover:text-lnu-blue transition-colors p-1 rounded hover:bg-gray-100"
+                                        title="View budget source details"
+                                        @click="showBudgetSources = !showBudgetSources">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0zM8 8a1 1 0 000 2h6a1 1 0 100-2H8z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </div>
                             <p class="text-2xl font-bold text-lnu-gold">₱{{ number_format($program->allocated_budget, 2) }}</p>
+                            
+                            <!-- Budget Sources Summary (collapsible) -->
+                            <div x-show="showBudgetSources" 
+                                 x-transition 
+                                 class="mt-4 pt-4 border-t border-gray-200 space-y-3"
+                                 style="display: none;">
+                                @php
+                                $budgetSources = $program->budgetUtilizations()
+                                    ->whereNotNull('budget_source')
+                                    ->distinct('budget_source')
+                                    ->pluck('budget_source');
+                                @endphp
+                                
+                                @if($budgetSources->count() > 0)
+                                    <div class="space-y-2">
+                                        @foreach($budgetSources as $source)
+                                            <div class="bg-blue-50 rounded p-2 text-sm">
+                                                <p class="font-medium text-blue-900">{{ $source }}</p>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <a href="#budget-details" class="inline-block text-xs text-lnu-blue hover:underline font-medium">
+                                        View full details ↓
+                                    </a>
+                                @else
+                                    <p class="text-xs text-gray-500 italic">No budget source information recorded yet</p>
+                                @endif
+                            </div>
                         </div>
 
                         @if ($program->budgetUtilizations->count() > 0)
@@ -261,6 +299,18 @@
                         <div class="border-t border-gray-200 pt-4">
                             <p class="text-sm text-gray-600">Communities Involved</p>
                             <p class="text-2xl font-bold text-lnu-blue">{{ $program->communities->count() }}</p>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-sm text-gray-600">Overall Progress</p>
+                                <span class="text-sm font-semibold text-lnu-gold">{{ $program->activity_progress }}%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-3">
+                                <div class="bg-gradient-to-r from-lnu-blue to-lnu-gold h-3 rounded-full transition-all" 
+                                     style="width: {{ $program->activity_progress }}%"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">Based on activity completion rate</p>
                         </div>
                     </div>
                 </x-card>
@@ -285,6 +335,11 @@
                     Back to Programs
                 </a>
             </div>
+        </div>
+
+        <!-- Budget Utilization Section -->
+        <div class="mt-12 pt-8 border-t border-gray-200">
+            <livewire:budget-utilization-table :programId="$program->id" />
         </div>
     </div>
 </x-admin-layout>

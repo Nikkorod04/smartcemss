@@ -68,4 +68,29 @@ class ExtensionProgram extends Model
     {
         return $this->hasMany(BudgetUtilization::class);
     }
+
+    /**
+     * Calculate progress based on activity completion rate
+     * @return int Progress percentage (0-100)
+     */
+    public function getActivityProgressAttribute(): int
+    {
+        $activities = $this->activities()->get();
+        
+        if ($activities->isEmpty()) {
+            // If no activities, base progress on status
+            return match ($this->status) {
+                'completed' => 100,
+                'ongoing' => 50,
+                'draft' => 20,
+                'cancelled' => 0,
+                default => 0,
+            };
+        }
+
+        $completedActivities = $activities->where('status', 'completed')->count();
+        $totalActivities = $activities->count();
+
+        return $totalActivities > 0 ? round(($completedActivities / $totalActivities) * 100) : 0;
+    }
 }

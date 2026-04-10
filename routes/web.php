@@ -6,6 +6,7 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\NeedsAssessmentController;
+use App\Http\Controllers\AssessmentTemplateController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FacultyAvailabilityController;
 use App\Http\Controllers\CalendarController;
@@ -54,6 +55,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('assessments', NeedsAssessmentController::class);
     Route::get('/assessments-search', [NeedsAssessmentController::class, 'search'])->name('assessments.search');
     Route::get('/assessments-filter/{quarter}', [NeedsAssessmentController::class, 'filterByQuarter'])->name('assessments.filter');
+
+    // Assessment template downloads
+    Route::get('/assessment-template/csv', [AssessmentTemplateController::class, 'downloadCsvTemplate'])->name('assessment.template.csv');
 
     // Faculty routes (Director only)
     Route::resource('faculties', FacultyController::class);

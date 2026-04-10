@@ -16,12 +16,22 @@ class BudgetUtilization extends Model
         'description',
         'attachment',
         'transaction_type',
+        'budget_source',
+        'source_description',
+        'people_involved',
+        'offices_involved',
+        'approval_status',
+        'approved_by',
+        'approved_at',
     ];
 
     protected $casts = [
         'date_spent' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'people_involved' => 'json',
+        'offices_involved' => 'json',
     ];
 
     public function extensionProgram(): BelongsTo
