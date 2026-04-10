@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use Google\Cloud\Vision\V1\ImageAnnotatorClient;
+use Google\Cloud\Vision\V1\Client\ImageAnnotatorClient;
 use Google\Cloud\Vision\V1\Image;
 use Illuminate\Http\UploadedFile;
 
