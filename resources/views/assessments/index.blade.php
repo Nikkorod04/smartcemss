@@ -1,12 +1,7 @@
 <x-admin-layout header="Community Needs Assessments">
     <div class="bg-white rounded-lg shadow-lg -mx-6 -my-8 md:-mx-8 md:-my-8 p-6 md:p-8 space-y-6">
         <!-- Header with Actions -->
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-lnu-blue">Community Needs Assessments</h1>
-                <p class="text-gray-600 mt-1">Manage and review community needs assessment forms</p>
-            </div>
-
+        <div class="flex items-center justify-end">
             <div class="flex gap-2">
                 <div class="flex gap-2 border-r pr-4">
                     <a href="{{ route('assessment.template.csv') }}" class="btn-secondary flex items-center gap-2" download>

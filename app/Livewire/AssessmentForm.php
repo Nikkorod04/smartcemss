@@ -30,6 +30,8 @@ class AssessmentForm extends Component
     public $importStatus = null;
     public $importMessage = '';
     public $showImportedDataReview = false;
+    public $ocrMethod = null;
+    public $ocrConfidence = null;
 
     // SECTION I - Respondent Info
     public $respondent_first_name;
@@ -324,6 +326,10 @@ class AssessmentForm extends Component
                 return;
             }
 
+            // Store OCR metadata if available
+            $this->ocrMethod = $result['ocr_method'] ?? null;
+            $this->ocrConfidence = $result['confidence'] ?? null;
+
             // Map extracted data to form fields
             $mapper = new AssessmentFieldMapper();
             $mappedData = $mapper->mapDataToFields($result, $result['type']);
@@ -331,7 +337,20 @@ class AssessmentForm extends Component
             // Store imported data for review
             $this->importedData = $mappedData;
             $this->importStatus = 'success';
-            $this->importMessage = 'File processed successfully! Review and confirm the extracted data below.';
+            
+            // Build detailed success message with OCR info
+            $message = 'File processed successfully! Review and confirm the extracted data below.';
+            if ($this->ocrMethod) {
+                $message .= ' ';
+                if (strpos($this->ocrMethod, 'google_vision') !== false) {
+                    $confidenceText = $this->ocrConfidence ? "({$this->ocrConfidence}% confidence)" : '';
+                    $message .= "Extracted via Google Cloud Vision OCR {$confidenceText}";
+                } else {
+                    $message .= "Extracted via {$this->ocrMethod}";
+                }
+            }
+            
+            $this->importMessage = $message;
             $this->showImportedDataReview = true;
         } catch (\Exception $e) {
             $this->importStatus = 'error';
@@ -370,6 +389,8 @@ class AssessmentForm extends Component
         $this->importMessage = '';
         $this->showImportedDataReview = false;
         $this->assessment_file = null;
+        $this->ocrMethod = null;
+        $this->ocrConfidence = null;
     }
 
     public function submit()

@@ -9,10 +9,21 @@ use Smalot\PdfParser\Parser as PdfParser;
 class AssessmentDocumentParser
 {
     protected PdfParser $pdfParser;
+    protected ?OcrService $ocrService = null;
 
     public function __construct()
     {
         $this->pdfParser = new PdfParser();
+        
+        // Initialize OCR service only if Google credentials are available
+        try {
+            if (file_exists(storage_path('app/google-credentials.json'))) {
+                $this->ocrService = new OcrService();
+            }
+        } catch (\Exception $e) {
+            // OCR service not available, will use fallback methods
+            \Log::warning('OCR service initialization failed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -100,10 +111,30 @@ class AssessmentDocumentParser
     }
 
     /**
-     * Parse PDF file and extract text
+     * Parse PDF file - try OCR first, then fallback to text extraction
      */
     protected function parsePdf(UploadedFile $file): array
     {
+        // Try OCR first if available
+        if ($this->ocrService) {
+            try {
+                $ocrResult = $this->ocrService->extractFromPdf($file);
+                if ($ocrResult['success']) {
+                    return [
+                        'success' => true,
+                        'text' => $ocrResult['text'],
+                        'type' => 'pdf',
+                        'raw_text' => $ocrResult['text'],
+                        'ocr_method' => 'google_vision',
+                        'confidence' => $ocrResult['confidence'] ?? 0
+                    ];
+                }
+            } catch (\Exception $e) {
+                \Log::warning('OCR processing failed for PDF: ' . $e->getMessage());
+            }
+        }
+
+        // Fallback: use PDF parser for text-based PDFs
         try {
             $pdf = $this->pdfParser->parseFile($file->getRealPath());
             $text = $pdf->getText();
@@ -112,7 +143,8 @@ class AssessmentDocumentParser
                 'success' => true,
                 'text' => $text,
                 'type' => 'pdf',
-                'raw_text' => $text
+                'raw_text' => $text,
+                'ocr_method' => 'pdf_parser_fallback'
             ];
         } catch (\Exception $e) {
             return ['success' => false, 'error' => 'Failed to parse PDF: ' . $e->getMessage()];
@@ -120,19 +152,32 @@ class AssessmentDocumentParser
     }
 
     /**
-     * Parse image file - for now returns file path (would need OCR for full extraction)
-     * This is a placeholder for future OCR implementation
+     * Parse image file using Google Cloud Vision OCR
      */
     protected function parseImage(UploadedFile $file): array
     {
+        // If OCR service is not available, return error
+        if (!$this->ocrService) {
+            return [
+                'success' => false,
+                'error' => 'OCR service not configured. Please configure Google Cloud Vision credentials in storage/app/google-credentials.json'
+            ];
+        }
+
         try {
-            // Placeholder for OCR - would use Tesseract or similar
-            // For now, we'll just extract metadata and prompt user to review
+            $ocrResult = $this->ocrService->extractFromImage($file);
+            
+            if (!$ocrResult['success']) {
+                return $ocrResult;
+            }
+
             return [
                 'success' => true,
+                'text' => $ocrResult['text'],
                 'type' => 'image',
-                'message' => 'Image uploaded. Please review and fill form fields manually or check extracted text if OCR was applied.',
-                'file_path' => $file->getRealPath()
+                'ocr_method' => 'google_vision',
+                'confidence' => $ocrResult['confidence'] ?? 0,
+                'raw_text' => $ocrResult['text']
             ];
         } catch (\Exception $e) {
             return ['success' => false, 'error' => 'Failed to process image: ' . $e->getMessage()];
