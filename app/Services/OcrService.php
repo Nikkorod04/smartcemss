@@ -13,10 +13,13 @@ class OcrService
     public function __construct()
     {
         // Initialize Google Vision API client using service account credentials
-        $credentialsPath = storage_path('app/google-credentials.json');
+        // Check for custom filename in .env, otherwise use default
+        $credentialsFile = env('GOOGLE_CREDENTIALS_FILE', 'google-credentials.json');
+        $credentialsPath = storage_path('app/' . $credentialsFile);
         
         if (!file_exists($credentialsPath)) {
-            throw new \Exception('Google Cloud credentials file not found at ' . $credentialsPath);
+            throw new \Exception('Google Cloud credentials file not found at ' . $credentialsPath . 
+                                '. Set GOOGLE_CREDENTIALS_FILE in .env or place credentials at storage/app/' . $credentialsFile);
         }
 
         putenv('GOOGLE_APPLICATION_CREDENTIALS=' . $credentialsPath);

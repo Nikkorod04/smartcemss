@@ -47,11 +47,26 @@ This guide will help you set up Google Cloud Vision API for OCR capabilities in 
 
 ### 5. Place Credentials in Laravel
 
-1. Copy the downloaded JSON file
-2. Place it in: `storage/app/google-credentials.json`
-   ```
-   c:\Users\Nikko\Desktop\CAPSTONE\SMARTCEMES\storage\app\google-credentials.json
-   ```
+You have two options:
+
+### Option A: Default Filename (Easiest)
+Rename your JSON file to `google-credentials.json` and place it at:
+```
+storage/app/google-credentials.json
+```
+
+### Option B: Keep Your Current Filename (Recommended)
+Place your JSON file anywhere in `storage/app/` and add this to your `.env`:
+```env
+GOOGLE_CREDENTIALS_FILE=smartcemes-51502d0f238e.json
+```
+
+Then place the file at:
+```
+storage/app/smartcemes-51502d0f238e.json
+```
+
+**We recommend Option B** - you keep your original filename and the code adapts to it!
 
 ### 6. Verify Setup
 
@@ -103,9 +118,15 @@ $ocr = new App\Services\OcrService();
 Add these to your `.env` file if you want to customize behavior:
 
 ```env
+# Specify your Google credentials JSON filename (default: google-credentials.json)
+GOOGLE_CREDENTIALS_FILE=smartcemes-51502d0f238e.json
+
+# You can also add these if needed:
 GOOGLE_VISION_ENABLED=true
 GOOGLE_CLOUD_PROJECT=your-project-id
 ```
+
+**Note:** Only `GOOGLE_CREDENTIALS_FILE` is required if your JSON file has a different name.
 
 ## Cost Considerations
 
@@ -118,7 +139,11 @@ For typical usage with ~100 assessments/month = $0.15/month
 ## Troubleshooting
 
 ### "Credentials file not found"
-- Verify file is at: `storage/app/google-credentials.json`
+- Verify file is at: `storage/app/your-filename.json`
+- If using a custom filename, make sure it's set in `.env`:
+  ```env
+  GOOGLE_CREDENTIALS_FILE=smartcemes-51502d0f238e.json
+  ```
 - Check file permissions (should be readable)
 
 ### "No text detected in image"
@@ -127,13 +152,14 @@ For typical usage with ~100 assessments/month = $0.15/month
 - Ensure form fields are clearly visible
 
 ### "OCR service not configured"
-- Credentials file is missing
+- Credentials file is missing or path is incorrect
 - But system will still allow manual entry or CSV/Excel import
 
 ### API Authentication Errors
 - Verify service account has Vision API access
 - Check that the JSON key is valid and not expired
 - Re-download a new key from Google Cloud Console
+- Make sure you're using the correct filename in `.env`
 
 ## File Structure
 

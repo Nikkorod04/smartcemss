@@ -18,7 +18,7 @@
 /public/storage
 /storage/*.key
 /storage/pail
-/storage/app/google-credentials.json
+/storage/app/*.json
 /vendor
 Homestead.json
 Homestead.yaml
