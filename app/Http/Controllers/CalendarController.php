@@ -83,24 +83,38 @@ class CalendarController extends Controller
                 ];
             }
 
-            // Get faculty's personal schedule (availability blocks)
-            $availabilities = FacultyAvailability::where('faculty_id', $faculty->id)
-                ->where('status', 'approved')
-                ->get();
+            // Get faculty's personal schedule (availability blocks - all statuses)
+            $availabilities = FacultyAvailability::where('faculty_id', $faculty->id)->get();
 
             foreach ($availabilities as $avail) {
+                // Different colors based on status
+                if ($avail->status === 'approved') {
+                    $bgColor = '#6c757d'; // Dark gray for approved
+                    $borderColor = '#495057';
+                    $title = '✓ Available - ' . $avail->time_slot;
+                } elseif ($avail->status === 'pending') {
+                    $bgColor = '#ffc107'; // Yellow for pending
+                    $borderColor = '#e0a800';
+                    $title = '⏳ Pending - ' . $avail->time_slot;
+                } else { // rejected
+                    $bgColor = '#dc3545'; // Red for rejected
+                    $borderColor = '#c82333';
+                    $title = '✗ Rejected - ' . $avail->time_slot;
+                }
+
                 $events[] = [
                     'id' => 'availability-' . $avail->id,
-                    'title' => 'Available - ' . $avail->time_slot,
+                    'title' => $title,
                     'start' => $avail->date->format('Y-m-d'),
                     'type' => 'availability',
-                    'backgroundColor' => '#e9ecef', // Light gray
-                    'borderColor' => '#6c757d',
-                    'textColor' => '#000',
+                    'backgroundColor' => $bgColor,
+                    'borderColor' => $borderColor,
+                    'textColor' => '#fff',
                     'editable' => false,
                     'extendedProps' => [
                         'type' => 'availability',
                         'model_id' => $avail->id,
+                        'status' => $avail->status,
                     ]
                 ];
             }

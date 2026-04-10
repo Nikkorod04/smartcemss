@@ -28,14 +28,14 @@ class FacultyAvailabilityController extends Controller
         $timeSlots = [
             'Morning (8:00 AM - 12:00 PM)',
             'Afternoon (1:00 PM - 5:00 PM)',
-            'Evening (5:00 PM - 9:00 PM)',
+            'Whole Day (8:00 AM - 5:00 PM)',
         ];
 
         return view('faculty.availability.index', compact('availabilities', 'timeSlots'));
     }
 
     /**
-     * Store new availability entry
+     * Store new availability entry (supports date range)
      */
     public function store(Request $request)
     {
@@ -47,29 +47,47 @@ class FacultyAvailabilityController extends Controller
         }
 
         $validated = $request->validate([
-            'date' => ['required', 'date', 'after_or_equal:today'],
+            'date_from' => ['required', 'date', 'after_or_equal:today'],
+            'date_to' => ['required', 'date', 'after_or_equal:date_from'],
             'time_slot' => ['required', 'string', 'max:255'],
+            'remarks' => ['nullable', 'string', 'max:500'],
         ]);
 
-        // Check if already exists
-        $existing = FacultyAvailability::where('faculty_id', $faculty->id)
-            ->where('date', $validated['date'])
-            ->where('time_slot', $validated['time_slot'])
-            ->first();
+        // Generate date range
+        $startDate = \Carbon\Carbon::parse($validated['date_from']);
+        $endDate = \Carbon\Carbon::parse($validated['date_to']);
+        $createdCount = 0;
+        $skippedCount = 0;
 
-        if ($existing) {
-            return back()->with('error', 'You already have an availability entry for this date and time slot');
+        // Create availability entry for each day in range
+        while ($startDate <= $endDate) {
+            $existing = FacultyAvailability::where('faculty_id', $faculty->id)
+                ->where('date', $startDate->toDateString())
+                ->where('time_slot', $validated['time_slot'])
+                ->first();
+
+            if (!$existing) {
+                FacultyAvailability::create([
+                    'faculty_id' => $faculty->id,
+                    'date' => $startDate->toDateString(),
+                    'time_slot' => $validated['time_slot'],
+                    'status' => 'pending',
+                    'remarks' => $validated['remarks'] ?? null,
+                ]);
+                $createdCount++;
+            } else {
+                $skippedCount++;
+            }
+
+            $startDate->addDay();
         }
 
-        FacultyAvailability::create([
-            'faculty_id' => $faculty->id,
-            'date' => $validated['date'],
-            'time_slot' => $validated['time_slot'],
-            'status' => 'pending', // Requires director approval
-            'remarks' => $request->input('remarks'),
-        ]);
+        $message = "Availability submitted for approval! Created $createdCount entries.";
+        if ($skippedCount > 0) {
+            $message .= " ($skippedCount entries already exist)";
+        }
 
-        return back()->with('success', 'Availability submitted for approval');
+        return back()->with('success', $message);
     }
 
     /**

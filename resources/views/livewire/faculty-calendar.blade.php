@@ -1,21 +1,47 @@
 <div wire:ignore.self>
+    <!-- Legend -->
+    <div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div class="w-4 h-4 rounded" style="background-color: #003599;"></div>
+            <span class="text-xs font-medium text-gray-900">Programs</span>
+        </div>
+        <div class="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+            <div class="w-4 h-4 rounded" style="background-color: #28a745;"></div>
+            <span class="text-xs font-medium text-gray-900">Activities</span>
+        </div>
+        <div class="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-300">
+            <div class="w-4 h-4 rounded" style="background-color: #6c757d;"></div>
+            <span class="text-xs font-medium text-gray-900">Approved</span>
+        </div>
+        <div class="flex items-center gap-2 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div class="w-4 h-4 rounded" style="background-color: #ffc107;"></div>
+            <span class="text-xs font-medium text-gray-900">Pending</span>
+        </div>
+    </div>
+
     <!-- Calendar Container -->
     <div class="bg-white rounded-lg shadow-lg p-6">
         <div id="calendar"></div>
     </div>
 
     <!-- Add Availability Modal -->
-    <div id="addAvailabilityModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md">
+    <div id="addAvailabilityModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center overflow-y-auto">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-md my-8">
             <div class="bg-white border-b border-gray-200 p-6">
                 <h2 class="text-2xl font-bold text-lnu-blue">Add Your Availability</h2>
                 <p class="text-gray-600 text-sm mt-1">Let the director know when you're available</p>
             </div>
             <form id="addAvailabilityForm" class="p-6 space-y-4">
                 @csrf
-                <div>
-                    <label class="block text-sm font-medium text-gray-900 mb-1">Date</label>
-                    <input type="date" id="availabilityDate" name="date" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue" required>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-1">From Date</label>
+                        <input type="date" id="availabilityDateFrom" name="date_from" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-1">To Date</label>
+                        <input type="date" id="availabilityDateTo" name="date_to" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lnu-blue" required>
+                    </div>
                 </div>
 
                 <div>
@@ -24,7 +50,7 @@
                         <option value="">Select time slot...</option>
                         <option value="Morning (8:00 AM - 12:00 PM)">Morning (8:00 AM - 12:00 PM)</option>
                         <option value="Afternoon (1:00 PM - 5:00 PM)">Afternoon (1:00 PM - 5:00 PM)</option>
-                        <option value="Evening (5:00 PM - 9:00 PM)">Evening (5:00 PM - 9:00 PM)</option>
+                        <option value="Whole Day (8:00 AM - 5:00 PM)">Whole Day (8:00 AM - 5:00 PM)</option>
                     </select>
                 </div>
 
@@ -127,12 +153,14 @@
 
 function openAvailabilityModal(dateStr) {
     const modal = document.getElementById('addAvailabilityModal');
-    const dateInput = document.getElementById('availabilityDate');
+    const dateFromInput = document.getElementById('availabilityDateFrom');
+    const dateToInput = document.getElementById('availabilityDateTo');
 
     if (dateStr) {
         // Extract just the date part (YYYY-MM-DD)
         const dateOnly = dateStr.substring(0, 10);
-        dateInput.value = dateOnly;
+        dateFromInput.value = dateOnly;
+        dateToInput.value = dateOnly; // Default to same day
     }
 
     modal.classList.remove('hidden');
@@ -147,8 +175,18 @@ function closeAvailabilityModal() {
 document.getElementById('addAvailabilityForm').addEventListener('submit', function(e) {
     e.preventDefault();
 
+    const dateFrom = document.getElementById('availabilityDateFrom').value;
+    const dateTo = document.getElementById('availabilityDateTo').value;
+    
+    // Validate date range
+    if (new Date(dateFrom) > new Date(dateTo)) {
+        showNotification('error', 'End date must be after or equal to start date');
+        return;
+    }
+
     const formData = new FormData();
-    formData.append('date', document.getElementById('availabilityDate').value);
+    formData.append('date_from', dateFrom);
+    formData.append('date_to', dateTo);
     formData.append('time_slot', document.getElementById('availabilityTimeSlot').value);
     formData.append('remarks', document.getElementById('availabilityRemarks').value);
     formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
