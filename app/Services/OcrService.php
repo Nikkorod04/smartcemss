@@ -84,6 +84,10 @@ class OcrService
             $text = $fullTextAnnotation->getText();
             \Log::info('Text extracted from image', ['text_length' => strlen($text)]);
 
+            // Sanitize UTF-8 characters to avoid JSON encoding errors
+            $text = $this->sanitizeUtf8($text);
+            \Log::info('Text sanitized', ['text_length' => strlen($text)]);
+
             // Calculate confidence from pages
             $confidence = $this->calculateConfidenceFromAnnotation($annotation);
 
@@ -238,6 +242,10 @@ class OcrService
             $text = $fullTextAnnotation->getText();
             \Log::info('Text extracted from PDF', ['text_length' => strlen($text)]);
 
+            // Sanitize UTF-8 characters to avoid JSON encoding errors
+            $text = $this->sanitizeUtf8($text);
+            \Log::info('Text sanitized', ['text_length' => strlen($text)]);
+
             // Calculate confidence from pages
             $confidence = $this->calculateConfidenceFromAnnotation($annotation);
 
@@ -349,5 +357,31 @@ class OcrService
         if (isset($this->client)) {
             $this->client->close();
         }
+    }
+
+    /**
+     * Sanitize text to ensure valid UTF-8 encoding
+     * Removes or replaces invalid UTF-8 sequences to prevent JSON encoding errors
+     */
+    protected function sanitizeUtf8(string $text): string
+    {
+        // First, try to handle common invalid UTF-8 sequences
+        // iconv can convert invalid sequences to valid ones
+        $sanitized = iconv('UTF-8', 'UTF-8//IGNORE', $text);
+        
+        if ($sanitized === false) {
+            // If iconv fails, remove non-valid UTF-8 characters
+            $sanitized = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/u', '', $text);
+            $sanitized = preg_replace('/\xc3[^\x80-\xbf]/', '', $sanitized); // Remove invalid UTF-8 sequences
+        }
+        
+        // Also clean up common OCR artifacts
+        // Replace multiple spaces with single space
+        $sanitized = preg_replace('/\s+/', ' ', $sanitized);
+        
+        // Remove any remaining control characters except newlines and tabs
+        $sanitized = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $sanitized);
+        
+        return trim($sanitized);
     }
 }

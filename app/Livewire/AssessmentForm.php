@@ -377,12 +377,15 @@ class AssessmentForm extends Component
                 }
                 
                 if ($ocrCount > 0) {
+                    // Sanitize merged text to ensure valid UTF-8
+                    $sanitizedText = $this->sanitizeUtf8Text($mergedText);
+                    
                     // Successfully processed images via OCR
                     $result = [
                         'success' => true,
-                        'text' => $mergedText,
+                        'text' => $sanitizedText,
                         'type' => 'images',
-                        'raw_text' => $mergedText,
+                        'raw_text' => $sanitizedText,
                         'ocr_method' => 'google_vision',
                         'confidence' => $confidenceCount > 0 ? round($totalConfidence / $confidenceCount, 2) : 0
                     ];
@@ -720,5 +723,25 @@ class AssessmentForm extends Component
         $years = range($currentYear - 5, $currentYear + 1);
 
         return view('livewire.assessment-form', compact('communities', 'quarters', 'years'));
+    }
+
+    /**
+     * Sanitize text to ensure valid UTF-8 encoding
+     * Removes invalid UTF-8 sequences that cause JSON encoding errors
+     */
+    protected function sanitizeUtf8Text(string $text): string
+    {
+        // Use iconv to remove invalid UTF-8 sequences
+        $sanitized = iconv('UTF-8', 'UTF-8//IGNORE', $text);
+        
+        if ($sanitized === false) {
+            // Fallback: remove control characters
+            $sanitized = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $text);
+        }
+        
+        // Clean up excessive whitespace
+        $sanitized = preg_replace('/\s+/', ' ', $sanitized);
+        
+        return trim($sanitized);
     }
 }
