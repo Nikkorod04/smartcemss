@@ -321,34 +321,95 @@ class AssessmentForm extends Component
             // Get the files to process
             $filesToProcess = $this->assessment_files;
             
-            // If multiple JPG/PNG files, convert to PDF first
+            // Separate files by type
             $imageFiles = array_filter($filesToProcess, function($file) {
                 $ext = strtolower($file->getClientOriginalExtension());
                 return in_array($ext, ['jpg', 'jpeg', 'png']);
             });
             
+            $otherFiles = array_filter($filesToProcess, function($file) {
+                $ext = strtolower($file->getClientOriginalExtension());
+                return !in_array($ext, ['jpg', 'jpeg', 'png']);
+            });
+            
             $result = null;
             $parser = new AssessmentDocumentParser();
             
-            // If we have multiple images, convert to PDF
+            // Handle multiple images: Process individually and merge text
             if (count($imageFiles) > 1) {
-                $imageToPdf = new ImageToPdfService();
-                $pdfResult = $imageToPdf->convertImagesToPdf($imageFiles);
+                \Log::info('Processing ' . count($imageFiles) . ' images individually for OCR');
                 
-                if (!$pdfResult['success']) {
-                    $this->importStatus = 'error';
-                    $this->importMessage = $pdfResult['error'];
-                    return;
+                $mergedText = '';
+                $totalConfidence = 0;
+                $confidenceCount = 0;
+                $ocrCount = 0;
+                
+                // Create a service to process images individually
+                $ocrService = null;
+                try {
+                    $credentialsFile = env('GOOGLE_CREDENTIALS_FILE', 'google-credentials.json');
+                    $credentialsPath = storage_path('app/' . $credentialsFile);
+                    if (file_exists($credentialsPath)) {
+                        $ocrService = new \App\Services\OcrService();
+                    }
+                } catch (\Exception $e) {
+                    \Log::warning('OCR service not available for image processing');
                 }
                 
-                // Parse the converted PDF from path
-                $result = $parser->parseFromPath($pdfResult['path']);
+                foreach ($imageFiles as $index => $imageFile) {
+                    $imageIndex = $index + 1;
+                    \Log::info('Processing image ' . $imageIndex . '/' . count($imageFiles));
+                    
+                    if ($ocrService) {
+                        // Use OCR for this image
+                        $ocrResult = $ocrService->extractFromImage($imageFile);
+                        if ($ocrResult['success']) {
+                            $mergedText .= "--- Image $imageIndex ---\n";
+                            $mergedText .= $ocrResult['text'] . "\n\n";
+                            $totalConfidence += $ocrResult['confidence'] ?? 0;
+                            $confidenceCount++;
+                            $ocrCount++;
+                            \Log::info('Image ' . $imageIndex . ' OCR succeeded');
+                        } else {
+                            \Log::warning('Image ' . $imageIndex . ' OCR failed: ' . ($ocrResult['error'] ?? 'unknown'));
+                        }
+                    }
+                }
+                
+                if ($ocrCount > 0) {
+                    // Successfully processed images via OCR
+                    $result = [
+                        'success' => true,
+                        'text' => $mergedText,
+                        'type' => 'images',
+                        'raw_text' => $mergedText,
+                        'ocr_method' => 'google_vision',
+                        'confidence' => $confidenceCount > 0 ? round($totalConfidence / $confidenceCount, 2) : 0
+                    ];
+                    \Log::info('Multi-image OCR complete', [
+                        'images_processed' => $ocrCount,
+                        'confidence' => $result['confidence']
+                    ]);
+                } else {
+                    // OCR failed, fall back to PDF conversion
+                    \Log::warning('OCR processing failed for all images, falling back to PDF conversion');
+                    $imageToPdf = new ImageToPdfService();
+                    $pdfResult = $imageToPdf->convertImagesToPdf($imageFiles);
+                    
+                    if (!$pdfResult['success']) {
+                        $this->importStatus = 'error';
+                        $this->importMessage = $pdfResult['error'];
+                        return;
+                    }
+                    
+                    $result = $parser->parseFromPath($pdfResult['path']);
+                }
             } else if (count($imageFiles) === 1) {
                 // Single image, process directly
                 $result = $parser->parse($imageFiles[0]);
-            } else if (!empty($filesToProcess)) {
+            } else if (!empty($otherFiles)) {
                 // Process first non-image file (PDF, CSV, Excel)
-                $result = $parser->parse($filesToProcess[0]);
+                $result = $parser->parse($otherFiles[0]);
             } else {
                 $this->importStatus = 'error';
                 $this->importMessage = 'No valid files to process';
@@ -377,7 +438,7 @@ class AssessmentForm extends Component
             $imageCount = count($imageFiles);
             $message = 'File processed successfully!';
             if ($imageCount > 1) {
-                $message .= " ({$imageCount} images converted to PDF)";
+                $message .= " ({$imageCount} images processed)";
             }
             $message .= ' Review and confirm the extracted data below.';
             
