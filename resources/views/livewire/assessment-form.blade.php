@@ -51,8 +51,8 @@
                 </label>
                 <label class="p-4 border-2 rounded-lg cursor-pointer transition {{ $input_method === 'file' ? 'border-lnu-blue bg-blue-50' : 'border-gray-300' }}">
                     <input type="radio" name="input_method" wire:model.live="input_method" value="file" class="w-4 h-4" />
-                    <span class="ml-2 font-medium">Upload File</span>
-                    <p class="text-sm text-gray-600 mt-1">Upload PDF or image of the form</p>
+                    <span class="ml-2 font-medium">Upload File(s)</span>
+                    <p class="text-sm text-gray-600 mt-1">Upload up to 4 page images (auto-converts to PDF) or PDF directly</p>
                 </label>
             </div>
         </div>
@@ -60,12 +60,26 @@
         <!-- File Upload Section -->
         @if($input_method === 'file' && !$isEditing)
         <div class="border-b pb-6">
-            <h2 class="text-lg font-bold text-gray-900 mb-4">Upload Assessment File</h2>
+            <h2 class="text-lg font-bold text-gray-900 mb-4">Upload Assessment File(s)</h2>
             <div>
-                <label class="block text-sm font-medium text-gray-900 mb-2">Select File *</label>
-                <input type="file" wire:model="assessment_file" accept=".pdf,.xlsx,.csv,.jpg,.jpeg,.png" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lnu-blue" />
-                <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, XLSX, CSV, JPG, PNG (Max 10MB)</p>
-                @error('assessment_file')<span class="text-red-600 text-sm">{{ $message }}</span>@enderror
+                <label class="block text-sm font-medium text-gray-900 mb-2">Select Files *</label>
+                <input type="file" wire:model="assessment_files" accept=".jpg,.jpeg,.png,.pdf,.xlsx,.csv" multiple class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lnu-blue" />
+                <p class="text-xs text-gray-500 mt-1">📸 Multiple images (max 4): Auto-converts to PDF. Single file: PDF, XLSX, CSV, JPG, or PNG (Max 10MB each)</p>
+                
+                <!-- File count indicator -->
+                @if(!empty($assessment_files))
+                <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-sm font-medium text-blue-900">
+                        📁 {{ count($assessment_files) }} file(s) selected
+                        @if(count($assessment_files) > 1)
+                            <span class="text-xs text-blue-700">(Will auto-convert to single PDF)</span>
+                        @endif
+                    </p>
+                </div>
+                @endif
+                
+                @error('assessment_files')<span class="text-red-600 text-sm block mt-2">{{ $message }}</span>@enderror
+                @error('assessment_files.*')<span class="text-red-600 text-sm block mt-2">{{ $message }}</span>@enderror
             </div>
 
             <!-- Import Status Message -->

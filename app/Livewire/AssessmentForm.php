@@ -6,6 +6,7 @@ use App\Models\NeedsAssessment;
 use App\Models\Community;
 use App\Services\AssessmentDocumentParser;
 use App\Services\AssessmentFieldMapper;
+use App\Services\ImageToPdfService;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +24,7 @@ class AssessmentForm extends Component
     public $community_id;
     public $quarter;
     public $year;
-    public $assessment_file;
+    public $assessment_files = [];  // Support multiple image uploads
 
     // File import properties
     public $importedData = [];
@@ -302,23 +303,75 @@ class AssessmentForm extends Component
     }
 
     /**
-     * Handle file upload and process document
+     * Handle multiple file uploads and process document
      */
-    public function updatedAssessmentFile()
+    public function updatedAssessmentFiles()
     {
-        if (!$this->assessment_file) {
+        if (empty($this->assessment_files)) {
             return;
         }
 
         try {
-            // Validate file
+            // Validate files
             $this->validate([
-                'assessment_file' => 'required|file|mimes:pdf,xlsx,csv,jpg,jpeg,png|max:10240',
+                'assessment_files' => 'required|array|min:1|max:4',
+                'assessment_files.*' => 'required|file|mimes:jpg,jpeg,png,pdf,xlsx,csv|max:10240',
             ]);
 
-            // Parse document
-            $parser = new AssessmentDocumentParser();
-            $result = $parser->parse($this->assessment_file);
+            // Get the files to process
+            $filesToProcess = $this->assessment_files;
+            
+            // If multiple JPG/PNG files, convert to PDF first
+            $imageFiles = array_filter($filesToProcess, function($file) {
+                $ext = strtolower($file->getClientOriginalExtension());
+                return in_array($ext, ['jpg', 'jpeg', 'png']);
+            });
+            
+            // If we have multiple images, convert to PDF
+            if (count($imageFiles) > 1) {
+                $imageToPdf = new ImageToPdfService();
+                $pdfResult = $imageToPdf->convertImagesToPdf($imageFiles);
+                
+                if (!$pdfResult['success']) {
+                    $this->importStatus = 'error';
+                    $this->importMessage = $pdfResult['error'];
+                    return;
+                }
+                
+                // Create a temporary file object for the PDF
+                $pdfPath = $pdfResult['path'];
+                $filesToProcess = [new \SplFileObject($pdfPath)];
+            } else if (count($imageFiles) === 1) {
+                // Single image, can process directly
+                $filesToProcess = $imageFiles;
+            }
+
+            // Process the file (either original or converted PDF)
+            foreach ($filesToProcess as $fileToProcess) {
+                // If it's a SplFileObject from PDF conversion, wrap it
+                if ($fileToProcess instanceof \SplFileObject) {
+                    // For now, use the file as-is (already at correct path)
+                    $parser = new AssessmentDocumentParser();
+                    
+                    // Create a minimal UploadedFile-like wrapper
+                    $pathInfo = pathinfo($fileToProcess->getRealPath());
+                    $tempFile = $fileToProcess->getRealPath();
+                } else {
+                    // Use the UploadedFile directly
+                    $tempFile = $fileToProcess;
+                }
+                
+                // Parse document
+                $parser = new AssessmentDocumentParser();
+                if ($tempFile instanceof \SplFileObject) {
+                    // Handle SplFileObject
+                    $result = $this->parseFileFromPath($tempFile->getRealPath());
+                } else {
+                    // Handle UploadedFile
+                    $result = $parser->parse($tempFile);
+                }
+                break; // Process first file in loop
+            }
 
             if (!$result['success']) {
                 $this->importStatus = 'error';
@@ -339,7 +392,13 @@ class AssessmentForm extends Component
             $this->importStatus = 'success';
             
             // Build detailed success message with OCR info
-            $message = 'File processed successfully! Review and confirm the extracted data below.';
+            $imageCount = count($imageFiles);
+            $message = 'File processed successfully!';
+            if ($imageCount > 1) {
+                $message .= " ({$imageCount} images converted to PDF)";
+            }
+            $message .= ' Review and confirm the extracted data below.';
+            
             if ($this->ocrMethod) {
                 $message .= ' ';
                 if (strpos($this->ocrMethod, 'google_vision') !== false) {
@@ -354,8 +413,40 @@ class AssessmentForm extends Component
             $this->showImportedDataReview = true;
         } catch (\Exception $e) {
             $this->importStatus = 'error';
-            $this->importMessage = 'Error processing file: ' . $e->getMessage();
+            $this->importMessage = 'Error processing files: ' . $e->getMessage();
         }
+    }
+    
+    /**
+     * Helper method to parse file from path
+     */
+    private function parseFileFromPath(string $filePath): array
+    {
+        $parser = new AssessmentDocumentParser();
+        
+        // Determine file type from extension
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        
+        if ($ext === 'pdf') {
+            // For PDF files, use the PDF parsing method
+            if ($parser->getPdfParser()) {
+                try {
+                    $pdf = $parser->getPdfParser()->parseFile($filePath);
+                    $text = $pdf->getText();
+                    return [
+                        'success' => true,
+                        'text' => $text,
+                        'type' => 'pdf',
+                        'raw_text' => $text,
+                        'ocr_method' => 'pdf_parser_fallback'
+                    ];
+                } catch (\Exception $e) {
+                    return ['success' => false, 'error' => 'Failed to parse PDF: ' . $e->getMessage()];
+                }
+            }
+        }
+        
+        return ['success' => false, 'error' => 'Unable to process file'];
     }
 
     /**
@@ -388,7 +479,7 @@ class AssessmentForm extends Component
         $this->importStatus = null;
         $this->importMessage = '';
         $this->showImportedDataReview = false;
-        $this->assessment_file = null;
+        $this->assessment_files = [];
         $this->ocrMethod = null;
         $this->ocrConfidence = null;
     }
@@ -400,7 +491,8 @@ class AssessmentForm extends Component
             'community_id' => 'required|exists:communities,id',
             'quarter' => 'required|in:Q1,Q2,Q3,Q4',
             'year' => 'required|integer|min:2000|max:' . (now()->year + 1),
-            'assessment_file' => 'nullable|required_if:input_method,file|file|mimes:pdf,xlsx,csv,jpg,jpeg,png|max:10240',
+            'assessment_files' => 'nullable|required_if:input_method,file|array|max:4',
+            'assessment_files.*' => 'required|file|mimes:pdf,xlsx,csv,jpg,jpeg,png|max:10240',
             
             // SECTION I
             'respondent_first_name' => 'nullable|string|max:100',
@@ -478,8 +570,9 @@ class AssessmentForm extends Component
         ]);
 
         $filePath = null;
-        if ($this->input_method === 'file' && $this->assessment_file) {
-            $filePath = $this->assessment_file->store('assessments', 'public');
+        if ($this->input_method === 'file' && !empty($this->assessment_files)) {
+            // Store the first file (after potential PDF conversion in updatedAssessmentFiles)
+            $filePath = $this->assessment_files[0]->store('assessments', 'public');
         }
 
         $data = [
