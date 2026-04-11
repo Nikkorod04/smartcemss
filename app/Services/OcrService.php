@@ -4,6 +4,10 @@ namespace App\Services;
 
 use Google\Cloud\Vision\V1\Client\ImageAnnotatorClient;
 use Google\Cloud\Vision\V1\Image;
+use Google\Cloud\Vision\V1\Feature;
+use Google\Cloud\Vision\V1\Feature\Type;
+use Google\Cloud\Vision\V1\BatchAnnotateImagesRequest;
+use Google\Cloud\Vision\V1\AnnotateImageRequest;
 use Illuminate\Http\UploadedFile;
 
 class OcrService
@@ -40,11 +44,36 @@ class OcrService
             $imageData = file_get_contents($file->getRealPath());
             $image = (new Image())->setContent($imageData);
 
-            // Perform text detection
-            $response = $this->client->documentTextDetection($image);
-            $document = $response->getFullTextAnnotation();
+            // Create annotation request with DOCUMENT_TEXT_DETECTION feature
+            $feature = new Feature([
+                'type' => Type::DOCUMENT_TEXT_DETECTION,
+            ]);
 
-            if (!$document) {
+            $annotateImageRequest = new AnnotateImageRequest([
+                'image' => $image,
+                'features' => [$feature],
+            ]);
+
+            $batchRequest = new BatchAnnotateImagesRequest([
+                'requests' => [$annotateImageRequest],
+            ]);
+
+            // Call the API
+            $response = $this->client->batchAnnotateImages($batchRequest);
+            $results = $response->getResponses();
+
+            if (empty($results) || !$results[0]) {
+                \Log::warning('No response from Vision API for image');
+                return [
+                    'success' => false,
+                    'error' => 'No text detected in image'
+                ];
+            }
+
+            $annotation = $results[0];
+            $fullTextAnnotation = $annotation->getFullTextAnnotation();
+
+            if (!$fullTextAnnotation) {
                 \Log::warning('No text detected in image');
                 return [
                     'success' => false,
@@ -52,13 +81,16 @@ class OcrService
                 ];
             }
 
-            $text = $document->getText();
+            $text = $fullTextAnnotation->getText();
             \Log::info('Text extracted from image', ['text_length' => strlen($text)]);
+
+            // Calculate confidence from pages
+            $confidence = $this->calculateConfidenceFromAnnotation($annotation);
 
             return [
                 'success' => true,
                 'text' => $text,
-                'confidence' => $this->calculateConfidence($response),
+                'confidence' => $confidence,
                 'type' => 'image'
             ];
         } catch (\Exception $e) {
@@ -92,18 +124,41 @@ class OcrService
             // For large PDFs, use batch request with PDF MIME type
             $image = (new Image())->setContent($pdfData);
             \Log::info('Image object created');
-            
-            $gcsSourceUri = null; // Could use GCS URI for large files
 
-            // Use document text detection for better results with forms
+            // Create annotation request with DOCUMENT_TEXT_DETECTION feature
+            $feature = new Feature([
+                'type' => Type::DOCUMENT_TEXT_DETECTION,
+            ]);
+
+            $annotateImageRequest = new AnnotateImageRequest([
+                'image' => $image,
+                'features' => [$feature],
+            ]);
+
+            $batchRequest = new BatchAnnotateImagesRequest([
+                'requests' => [$annotateImageRequest],
+            ]);
+
+            // Call the API
             \Log::info('Calling Google Vision API for document text detection');
-            $response = $this->client->documentTextDetection($image);
+            $response = $this->client->batchAnnotateImages($batchRequest);
             \Log::info('Google Vision API response received');
             
-            $document = $response->getFullTextAnnotation();
-            \Log::info('Full text annotation extracted', ['document_null' => $document === null]);
+            $results = $response->getResponses();
+            
+            if (empty($results) || !$results[0]) {
+                \Log::warning('No response from Vision API for PDF');
+                return [
+                    'success' => false,
+                    'error' => 'No text detected in PDF'
+                ];
+            }
 
-            if (!$document) {
+            $annotation = $results[0];
+            $fullTextAnnotation = $annotation->getFullTextAnnotation();
+            \Log::info('Full text annotation extracted', ['document_null' => $fullTextAnnotation === null]);
+
+            if (!$fullTextAnnotation) {
                 \Log::warning('No text detected in PDF');
                 return [
                     'success' => false,
@@ -111,13 +166,16 @@ class OcrService
                 ];
             }
 
-            $text = $document->getText();
+            $text = $fullTextAnnotation->getText();
             \Log::info('Text extracted from PDF', ['text_length' => strlen($text)]);
+
+            // Calculate confidence from pages
+            $confidence = $this->calculateConfidenceFromAnnotation($annotation);
 
             return [
                 'success' => true,
                 'text' => $text,
-                'confidence' => $this->calculateConfidence($response),
+                'confidence' => $confidence,
                 'type' => 'pdf'
             ];
         } catch (\Exception $e) {
@@ -136,24 +194,30 @@ class OcrService
     }
 
     /**
-     * Calculate average confidence score from OCR results
+     * Calculate confidence from annotation
      */
-    protected function calculateConfidence($response): float
+    protected function calculateConfidenceFromAnnotation($annotation): float
     {
-        $annotations = $response->getTextAnnotations();
+        $fullTextAnnotation = $annotation->getFullTextAnnotation();
         
-        if (empty($annotations)) {
+        if (!$fullTextAnnotation) {
+            return 0;
+        }
+
+        $pages = $fullTextAnnotation->getPages();
+        
+        if (empty($pages)) {
             return 0;
         }
 
         $totalConfidence = 0;
         $count = 0;
 
-        // Skip first annotation (full text)
-        for ($i = 1; $i < count($annotations); $i++) {
-            $annotation = $annotations[$i];
-            if ($annotation->getConfidence() > 0) {
-                $totalConfidence += $annotation->getConfidence();
+        // Get confidence from each page
+        foreach ($pages as $page) {
+            $confidence = $page->getConfidence();
+            if ($confidence > 0) {
+                $totalConfidence += $confidence;
                 $count++;
             }
         }
