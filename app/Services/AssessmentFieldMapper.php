@@ -219,6 +219,10 @@ class AssessmentFieldMapper
             \Log::warning('mapUnstructuredText received empty text');
             return [];
         }
+
+        // First, clean up the text by removing or marking section headers
+        // Replace "SECTION I:" "SECTION II:" etc with markers so they don't interfere
+        $text = preg_replace('/SECTION\s+[IVX]+\s*:\s*/i', ' | SECTIONBREAK | ', $text);
         
         // Exact field labels from the PDF form (case-insensitive matching)
         $labelMap = [
@@ -306,45 +310,49 @@ class AssessmentFieldMapper
         ];
         
         // Create a special map with labels sorted by length (longest first)
-        // This prevents partial matches like "number of" before "number of children"
         $sortedLabels = array_keys($labelMap);
         usort($sortedLabels, function($a, $b) {
             return strlen($b) - strlen($a); // Longest first
         });
         
-        // Build regex pattern with escaped labels
-        $escapedLabels = array_map(function($label) {
-            return preg_quote($label, '/');
-        }, $sortedLabels);
-        
-        // Create pattern that matches: label: value
-        // The pattern uses lookahead to stop at the next label or end of string
-        $labelPattern = implode('|', $escapedLabels);
-        $pattern = '/(' . $labelPattern . ')\s*:\s*([^:\n]*?)(?=(?:' . $labelPattern . ')\s*:|$)/ims';
-        
-        // Extract all label: value pairs using regex
-        if (preg_match_all($pattern, $text, $matches, PREG_SET_ORDER)) {
-            foreach ($matches as $match) {
-                $capturedLabel = trim($match[1]);
-                $value = trim($match[2]);
-                
-                // Find the exact field name (case-insensitive match)
-                $fieldName = null;
-                $foundLabel = null;
-                
-                foreach ($labelMap as $label => $field) {
-                    if (strtolower($label) === strtolower($capturedLabel)) {
-                        $fieldName = $field;
-                        $foundLabel = $label;
-                        break;
-                    }
+        // For each label, find ALL occurrences and extract values
+        foreach ($sortedLabels as $label) {
+            $fieldName = $labelMap[$label];
+            
+            // Skip if we've already assigned this field (avoid duplicates)
+            if ($fieldName === 'barangay_service_ratings') {
+                // These can have multiple values, handled separately
+            } else {
+                if (isset($mappedFields[$fieldName])) {
+                    continue; // Already extracted this field
                 }
+            }
+            
+            // Build a case-insensitive search pattern for this specific label
+            // Pattern: label followed by colon, then capture value until next known label or break
+            $escapedLabel = preg_quote($label, '/');
+            
+            // Match: "label:" followed by everything (non-greedy) until next label or SECTIONBREAK
+            // Use .*? instead of [^:]* to properly handle values that might contain certain characters
+            $nextLabelsPattern = implode('|', array_map(function($l) {
+                return preg_quote($l, '/');
+            }, $sortedLabels));
+            
+            $pattern = '/' . $escapedLabel . '\s*:\s*(.*?)(?=(?:' . $nextLabelsPattern . ')\s*:|\|\ SECTIONBREAK\ \|)/ims';
+            
+            if (preg_match($pattern, $text, $matches)) {
+                $value = trim($matches[1]);
                 
-                if ($fieldName && !empty($value)) {
-                    // Remove common separators and cleanup
-                    $value = trim(str_replace(['?', '*', '☐', '☑', '○', '●'], '', $value));
-                    
-                    // Process the value
+                // Clean up the value: remove section headers, unwanted chars
+                $value = str_replace(['| SECTIONBREAK |', '?', '*', '☐', '☑', '○', '●'], '', $value);
+                $value = trim($value);
+                
+                // Remove common prefixes that are UI elements, not data
+                $value = preg_replace('/^(if yes|if no|if applicable)[,\s]+/i', '', $value);
+                $value = trim($value);
+                
+                if (!empty($value)) {
+                    // Process the value based on field type
                     $processedValue = $this->processExtractedValue($fieldName, [$value], 0);
                     
                     if ($processedValue !== null) {
@@ -353,12 +361,9 @@ class AssessmentFieldMapper
                             if (!isset($mappedFields[$fieldName])) {
                                 $mappedFields[$fieldName] = [];
                             }
-                            $mappedFields[$fieldName][$foundLabel] = $processedValue;
+                            $mappedFields[$fieldName][$label] = $processedValue;
                         } else {
-                            // Avoid duplicate fields - keep first value
-                            if (!isset($mappedFields[$fieldName])) {
-                                $mappedFields[$fieldName] = $processedValue;
-                            }
+                            $mappedFields[$fieldName] = $processedValue;
                         }
                     }
                 }
