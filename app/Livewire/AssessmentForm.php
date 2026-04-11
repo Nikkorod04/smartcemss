@@ -433,6 +433,9 @@ class AssessmentForm extends Component
             $mapper = new AssessmentFieldMapper();
             $mappedData = $mapper->mapDataToFields($result, $result['type']);
             
+            // Sanitize all mapped field values to ensure valid UTF-8
+            $mappedData = $this->sanitizeUtf8Array($mappedData);
+            
             // Log extracted text and mapped fields for debugging
             \Log::info('OCR text extracted', [
                 'text_length' => strlen($result['text'] ?? ''),
@@ -743,5 +746,29 @@ class AssessmentForm extends Component
         $sanitized = preg_replace('/\s+/', ' ', $sanitized);
         
         return trim($sanitized);
+    }
+
+    /**
+     * Sanitize all values in an array to ensure valid UTF-8 encoding
+     * Recursively handles nested arrays
+     */
+    protected function sanitizeUtf8Array(array $data): array
+    {
+        $sanitized = [];
+        
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                // Recursively sanitize nested arrays
+                $sanitized[$key] = $this->sanitizeUtf8Array($value);
+            } elseif (is_string($value)) {
+                // Sanitize string values
+                $sanitized[$key] = $this->sanitizeUtf8Text($value);
+            } else {
+                // Keep non-string, non-array values as-is
+                $sanitized[$key] = $value;
+            }
+        }
+        
+        return $sanitized;
     }
 }
