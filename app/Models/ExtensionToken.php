@@ -36,7 +36,9 @@ class ExtensionToken extends Model
         if (!$this->expires_at) {
             return false; // No expiration set
         }
-        return now()->isAfter($this->expires_at);
+        
+        // Use Carbon comparison which respects the app timezone
+        return $this->expires_at->isPast();
     }
 
     /**
@@ -56,27 +58,36 @@ class ExtensionToken extends Model
             return 'Never expires';
         }
         
-        if ($this->isExpired()) {
-            return 'Expired (' . $this->expires_at->format('M d, Y') . ')';
+        $now = now();
+        $expiresAt = $this->expires_at;
+        
+        // If expired, show that clearly
+        if ($expiresAt->isPast()) {
+            return 'Expired (' . $expiresAt->format('M d, Y') . ')';
         }
         
-        // Check if less than 24 hours remaining
-        $hours = (float) now()->diffInRealHours($this->expires_at);
-        if ($hours < 24) {
-            return 'Expires in ' . (int) ceil($hours) . ' hours';
+        // Calculate remaining time using Carbon's reliable methods
+        $hoursRemaining = ($expiresAt->timestamp - $now->timestamp) / 3600;
+        $daysRemaining = (int) floor(($expiresAt->timestamp - $now->timestamp) / 86400);
+        
+        if ($hoursRemaining < 1) {
+            return 'Expires in less than 1 hour';
         }
         
-        $days = (int) now()->diffInDays($this->expires_at);
-        if ($days === 0) {
+        if ($hoursRemaining < 24) {
+            return 'Expires in ' . (int) ceil($hoursRemaining) . ' hour' . ((int) ceil($hoursRemaining) !== 1 ? 's' : '');
+        }
+        
+        if ($daysRemaining === 0) {
             return 'Expires today';
         }
-        if ($days === 1) {
+        if ($daysRemaining === 1) {
             return 'Expires tomorrow';
         }
-        if ($days <= 7) {
-            return 'Expires in ' . $days . ' days';
+        if ($daysRemaining <= 7) {
+            return 'Expires in ' . $daysRemaining . ' days';
         }
         
-        return 'Expires ' . $this->expires_at->format('M d, Y');
+        return 'Expires ' . $expiresAt->format('M d, Y');
     }
 }
