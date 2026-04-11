@@ -288,104 +288,81 @@ class AssessmentFieldMapper
             'available for training' => 'available_for_training',
         ];
         
-        // Normalize text for searching
-        $textLower = strtolower($text);
-        $lines = preg_split('/\r\n|\r|\n/', $text);
+        // Create a special map with labels sorted by length (longest first)
+        // This prevents partial matches like "number of" before "number of children"
+        $sortedLabels = array_keys($labelMap);
+        usort($sortedLabels, function($a, $b) {
+            return strlen($b) - strlen($a); // Longest first
+        });
         
-        // Track processed service ratings (1-5 scale)
-        $serviceRatings = [];
+        // Build regex pattern with escaped labels
+        $escapedLabels = array_map(function($label) {
+            return preg_quote($label, '/');
+        }, $sortedLabels);
         
-        // For each line, check if it starts a field label
-        for ($i = 0; $i < count($lines); $i++) {
-            $line = trim($lines[$i]);
-            $lineLower = strtolower($line);
+        // Create pattern that matches: label: value
+        // The pattern uses lookahead to stop at the next label or end of string
+        $labelPattern = implode('|', $escapedLabels);
+        $pattern = '/(' . $labelPattern . ')\s*:\s*([^:\n]*?)(?=(?:' . $labelPattern . ')\s*:|$)/ims';
+        
+        // Debug logging
+        \Log::debug('Field mapper pattern matching', [
+            'pattern' => $pattern,
+            'text_length' => strlen($text),
+            'text_preview' => substr($text, 0, 200)
+        ]);
+        
+        // Extract all label: value pairs using regex
+        if (preg_match_all($pattern, $text, $matches, PREG_SET_ORDER)) {
+            \Log::debug('Pattern matches found', ['count' => count($matches)]);
             
-            // Skip empty and section header lines
-            if (empty($line) || preg_match('/^SECTION\s+(I|II|III|IV|V|VI|VII|VIII|IX)/i', $line)) {
-                continue;
-            }
-            
-            // Check if this line starts with a known field label
-            $matchedField = null;
-            $matchLength = 0;
-            
-            foreach ($labelMap as $label => $fieldName) {
-                if (stripos($lineLower, $label) === 0) {
-                    // Found a matching label - use longest match to avoid false matches
-                    if (strlen($label) > $matchLength) {
-                        $matchedField = $fieldName;
-                        $matchLength = strlen($label);
-                    }
-                }
-            }
-            
-            if ($matchedField) {
-                // Get the part after the label (value)
-                $remainder = trim(substr($line, $matchLength));
+            foreach ($matches as $match) {
+                $capturedLabel = trim($match[1]);
+                $value = trim($match[2]);
                 
-                // Remove common separators and cleanup
-                $remainder = trim(str_replace([':', '?', '*', '☐', '☑', '○', '●'], '', $remainder));
+                // Find the exact field name (case-insensitive match)
+                $fieldName = null;
+                $foundLabel = null;
                 
-                // Collect values from this line and following lines
-                $values = [];
-                if (!empty($remainder)) {
-                    $values[] = $remainder;
-                }
-                
-                // Look at following lines for more values
-                $j = $i + 1;
-                while ($j < count($lines)) {
-                    $nextLine = trim($lines[$j]);
-                    
-                    // Stop at section headers
-                    if (preg_match('/^SECTION\s+(I|II|III|IV|V|VI|VII|VIII|IX)/i', $nextLine)) {
+                foreach ($labelMap as $label => $field) {
+                    if (strtolower($label) === strtolower($capturedLabel)) {
+                        $fieldName = $field;
+                        $foundLabel = $label;
                         break;
                     }
-                    
-                    // Stop at next field label (check against all known labels)
-                    $isNextLabel = false;
-                    foreach (array_keys($labelMap) as $label) {
-                        if (stripos(strtolower($nextLine), $label) === 0) {
-                            $isNextLabel = true;
-                            break;
-                        }
-                    }
-                    
-                    if ($isNextLabel) {
-                        break;
-                    }
-                    
-                    // Add non-empty, non-separator lines as values
-                    if (!empty($nextLine)) {
-                        // Clean the line
-                        $cleaned = trim(preg_replace('/^[\s:?*→\-•○●☐☑\d\.]+/i', '', $nextLine));
-                        if (!empty($cleaned) && strlen($cleaned) > 1) {
-                            $values[] = $cleaned;
-                        }
-                    }
-                    
-                    $j++;
                 }
                 
-                // Process collected values based on field type
-                if (!empty($values)) {
-                    $processedValue = $this->processExtractedValue($matchedField, $values, $matchLength);
+                \Log::debug('Processing match', [
+                    'label' => $capturedLabel,
+                    'field_name' => $fieldName,
+                    'value_preview' => substr($value, 0, 50)
+                ]);
+                
+                if ($fieldName && !empty($value)) {
+                    // Remove common separators and cleanup
+                    $value = trim(str_replace(['?', '*', '☐', '☑', '○', '●'], '', $value));
+                    
+                    // Process the value
+                    $processedValue = $this->processExtractedValue($fieldName, [$value], 0);
+                    
                     if ($processedValue !== null) {
-                        // Handle service ratings specially (accumulate them)
-                        if ($matchedField === 'barangay_service_ratings') {
-                            $labelKey = substr($line, 0, $matchLength);
-                            $serviceRatings[$labelKey] = $processedValue;
+                        if ($fieldName === 'barangay_service_ratings') {
+                            // Handle service ratings (can have multiple)
+                            if (!isset($mappedFields[$fieldName])) {
+                                $mappedFields[$fieldName] = [];
+                            }
+                            $mappedFields[$fieldName][$foundLabel] = $processedValue;
                         } else {
-                            $mappedFields[$matchedField] = $processedValue;
+                            // Avoid duplicate fields - keep first value
+                            if (!isset($mappedFields[$fieldName])) {
+                                $mappedFields[$fieldName] = $processedValue;
+                            }
                         }
                     }
                 }
             }
-        }
-        
-        // If we have service ratings, store them as JSON (label => rating pairs)
-        if (!empty($serviceRatings)) {
-            $mappedFields['barangay_service_ratings'] = $serviceRatings;
+        } else {
+            \Log::warning('No pattern matches found in text');
         }
         
         return $mappedFields;
