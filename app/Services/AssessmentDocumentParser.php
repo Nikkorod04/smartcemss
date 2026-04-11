@@ -17,8 +17,14 @@ class AssessmentDocumentParser
         
         // Initialize OCR service only if Google credentials are available
         try {
-            if (file_exists(storage_path('app/google-credentials.json'))) {
+            // Check for custom credentials filename from env, or use default
+            $credentialsFile = env('GOOGLE_CREDENTIALS_FILE', 'google-credentials.json');
+            $credentialsPath = storage_path('app/' . $credentialsFile);
+            
+            if (file_exists($credentialsPath)) {
                 $this->ocrService = new OcrService();
+            } else {
+                \Log::info('Google credentials file not found at: ' . $credentialsPath);
             }
         } catch (\Exception $e) {
             // OCR service not available, will use fallback methods
@@ -212,36 +218,37 @@ class AssessmentDocumentParser
         // Try OCR first if available
         if ($this->ocrService) {
             try {
-                // Create a temporary UploadedFile-like wrapper for OCR
+                // Create a temporary uploaded file wrapper from the PDF path
                 $pdfData = file_get_contents($filePath);
+                $tempFile = tmpfile();
+                fwrite($tempFile, $pdfData);
+                rewind($tempFile);
+                
+                // Create an UploadedFile-like object
+                $stream = $tempFile;
+                $size = strlen($pdfData);
+                
+                // Use OcrService directly with PDF data
                 $image = new \Google\Cloud\Vision\V1\Image();
                 $image->setContent($pdfData);
                 
-                // Use the OcrService's client directly
-                $ocrClient = $this->ocrService;
-                $reflectionClass = new \ReflectionClass($ocrClient);
-                $clientProp = $reflectionClass->getProperty('client');
-                $clientProp->setAccessible(true);
-                $client = $clientProp->getValue($ocrClient);
+                // Call the OcrService's extraction method
+                $ocrResult = $this->ocrService->extractFromPdf(
+                    new \Illuminate\Http\UploadedFile($filePath, 'converted.pdf', 'application/pdf', null, true)
+                );
                 
-                $response = $client->documentTextDetection($image);
-                $document = $response->getFullTextAnnotation();
-                
-                if ($document) {
-                    $text = $document->getText();
-                    $confidence = $this->calculateConfidenceFromResponse($response);
-                    
+                if ($ocrResult && $ocrResult['success']) {
                     return [
                         'success' => true,
-                        'text' => $text,
+                        'text' => $ocrResult['text'],
                         'type' => 'pdf',
-                        'raw_text' => $text,
+                        'raw_text' => $ocrResult['text'],
                         'ocr_method' => 'google_vision',
-                        'confidence' => $confidence
+                        'confidence' => $ocrResult['confidence'] ?? 0
                     ];
                 }
             } catch (\Exception $e) {
-                \Log::warning('OCR processing failed for PDF at path: ' . $e->getMessage());
+                \Log::warning('OCR processing failed for converted PDF: ' . $e->getMessage());
             }
         }
 
