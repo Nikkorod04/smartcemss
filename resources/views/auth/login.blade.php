@@ -2,7 +2,6 @@
     <div class="animate-fade-in">
         <!-- Logo / Branding -->
         <div class="text-center mb-8">
-            <img src="{{ asset('ceso_logobig.png') }}" alt="SmartCEMES" class="h-20 mx-auto mb-4 object-contain">
             <p class="text-gray-600 text-sm">Community Extension Services Monitoring & Evaluation System</p>
             <p class="text-gray-500 text-xs mt-2">Leyte Normal University</p>
         </div>
