@@ -327,6 +327,9 @@ class AssessmentForm extends Component
                 return in_array($ext, ['jpg', 'jpeg', 'png']);
             });
             
+            $result = null;
+            $parser = new AssessmentDocumentParser();
+            
             // If we have multiple images, convert to PDF
             if (count($imageFiles) > 1) {
                 $imageToPdf = new ImageToPdfService();
@@ -338,39 +341,18 @@ class AssessmentForm extends Component
                     return;
                 }
                 
-                // Create a temporary file object for the PDF
-                $pdfPath = $pdfResult['path'];
-                $filesToProcess = [new \SplFileObject($pdfPath)];
+                // Parse the converted PDF from path
+                $result = $parser->parseFromPath($pdfResult['path']);
             } else if (count($imageFiles) === 1) {
-                // Single image, can process directly
-                $filesToProcess = $imageFiles;
-            }
-
-            // Process the file (either original or converted PDF)
-            foreach ($filesToProcess as $fileToProcess) {
-                // If it's a SplFileObject from PDF conversion, wrap it
-                if ($fileToProcess instanceof \SplFileObject) {
-                    // For now, use the file as-is (already at correct path)
-                    $parser = new AssessmentDocumentParser();
-                    
-                    // Create a minimal UploadedFile-like wrapper
-                    $pathInfo = pathinfo($fileToProcess->getRealPath());
-                    $tempFile = $fileToProcess->getRealPath();
-                } else {
-                    // Use the UploadedFile directly
-                    $tempFile = $fileToProcess;
-                }
-                
-                // Parse document
-                $parser = new AssessmentDocumentParser();
-                if ($tempFile instanceof \SplFileObject) {
-                    // Handle SplFileObject
-                    $result = $this->parseFileFromPath($tempFile->getRealPath());
-                } else {
-                    // Handle UploadedFile
-                    $result = $parser->parse($tempFile);
-                }
-                break; // Process first file in loop
+                // Single image, process directly
+                $result = $parser->parse($imageFiles[0]);
+            } else if (!empty($filesToProcess)) {
+                // Process first non-image file (PDF, CSV, Excel)
+                $result = $parser->parse($filesToProcess[0]);
+            } else {
+                $this->importStatus = 'error';
+                $this->importMessage = 'No valid files to process';
+                return;
             }
 
             if (!$result['success']) {
@@ -415,38 +397,6 @@ class AssessmentForm extends Component
             $this->importStatus = 'error';
             $this->importMessage = 'Error processing files: ' . $e->getMessage();
         }
-    }
-    
-    /**
-     * Helper method to parse file from path
-     */
-    private function parseFileFromPath(string $filePath): array
-    {
-        $parser = new AssessmentDocumentParser();
-        
-        // Determine file type from extension
-        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-        
-        if ($ext === 'pdf') {
-            // For PDF files, use the PDF parsing method
-            if ($parser->getPdfParser()) {
-                try {
-                    $pdf = $parser->getPdfParser()->parseFile($filePath);
-                    $text = $pdf->getText();
-                    return [
-                        'success' => true,
-                        'text' => $text,
-                        'type' => 'pdf',
-                        'raw_text' => $text,
-                        'ocr_method' => 'pdf_parser_fallback'
-                    ];
-                } catch (\Exception $e) {
-                    return ['success' => false, 'error' => 'Failed to parse PDF: ' . $e->getMessage()];
-                }
-            }
-        }
-        
-        return ['success' => false, 'error' => 'Unable to process file'];
     }
 
     /**
