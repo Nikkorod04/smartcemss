@@ -5,10 +5,19 @@
             <!-- Profile Header -->
             <div class="flex items-start justify-between mb-8">
                 <div class="flex items-start gap-6">
-                    <div class="flex-shrink-0">
-                        <div class="w-24 h-24 bg-gradient-to-br from-lnu-blue to-blue-700 rounded-full flex items-center justify-center text-white text-4xl font-bold">
-                            {{ strtoupper(substr($faculty->user->name, 0, 1)) }}
-                        </div>
+                    <div class="flex-shrink-0 relative group">
+                        @if($faculty->avatar)
+                            <img src="{{ asset('icons/' . $faculty->avatar) }}" alt="Avatar" class="w-24 h-24 rounded-full object-cover border-2 border-gray-200">
+                        @else
+                            <div class="w-24 h-24 bg-gradient-to-br from-lnu-blue to-blue-700 rounded-full flex items-center justify-center text-white text-4xl font-bold">
+                                {{ strtoupper(substr($faculty->user->name, 0, 1)) }}
+                            </div>
+                        @endif
+                        <button x-on:click="$dispatch('open-modal', 'select-avatar')" class="absolute bottom-0 right-0 bg-lnu-blue text-white p-2 rounded-full shadow-lg hover:bg-blue-700 transition opacity-0 group-hover:opacity-100">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
+                            </svg>
+                        </button>
                     </div>
                     <div class="flex-grow">
                         <h1 class="text-3xl font-bold text-gray-900">{{ $faculty->user->name }}</h1>
@@ -78,53 +87,6 @@
             </div>
         </div>
 
-        <!-- Calendar Widget -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-2xl font-bold text-gray-900">Upcoming Events</h2>
-                <a href="{{ route('faculty.calendar') }}" class="text-lnu-blue hover:text-blue-700 font-medium">
-                    View Full Calendar →
-                </a>
-            </div>
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <div id="calendar-widget" class="max-h-96"></div>
-                <a href="{{ route('faculty.calendar') }}" class="block mt-4 text-center text-lnu-blue hover:text-blue-700 font-medium py-2">
-                    View Full Calendar
-                </a>
-            </div>
-        </div>
-
-        <!-- Quick Links -->
-        <div class="mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Quick Links</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <a href="{{ route('faculty.calendar') }}" class="bg-white hover:shadow-md transition rounded-lg p-6 text-center border border-gray-200">
-                    <svg class="w-8 h-8 text-lnu-blue mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/>
-                    </svg>
-                    <span class="font-semibold text-gray-900">Calendar</span>
-                </a>
-                <a href="{{ route('faculty.programs') }}" class="bg-white hover:shadow-md transition rounded-lg p-6 text-center border border-gray-200">
-                    <svg class="w-8 h-8 text-lnu-blue mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"/>
-                    </svg>
-                    <span class="font-semibold text-gray-900">Programs</span>
-                </a>
-                <a href="{{ route('faculty.availability.index') }}" class="bg-white hover:shadow-md transition rounded-lg p-6 text-center border border-gray-200">
-                    <svg class="w-8 h-8 text-lnu-blue mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M17 10.5V7c0 .55-.45 1-1 1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/>
-                    </svg>
-                    <span class="font-semibold text-gray-900">Availability</span>
-                </a>
-                <a href="{{ route('profile.edit') }}" class="bg-white hover:shadow-md transition rounded-lg p-6 text-center border border-gray-200">
-                    <svg class="w-8 h-8 text-lnu-blue mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-                    </svg>
-                    <span class="font-semibold text-gray-900">Profile</span>
-                </a>
-            </div>
-        </div>
-
         <!-- Recent Activities Section -->
         @if(count($recentActivities) > 0)
         <div class="mb-8">
@@ -158,4 +120,45 @@
         </div>
         @endif
     </div>
+
+    <!-- Avatar Selection Modal -->
+    <x-modal name="select-avatar" title="Select Avatar" max-width="md">
+        <button x-on:click="$dispatch('close')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        <div class="space-y-6">
+            <p class="text-gray-600">Choose your default avatar:</p>
+            <div class="grid grid-cols-2 gap-6">
+                <!-- Man Avatar Option -->
+                <button type="button" @click="@this.call('updateAvatar', 'man.png')" class="flex flex-col items-center focus:outline-none group">
+                    <div class="w-32 h-32 rounded-full border-4 @if($faculty->avatar === 'man.png') border-lnu-blue @else border-gray-200 group-hover:border-gray-300 @endif overflow-hidden mb-4 transition cursor-pointer">
+                        <img src="{{ asset('icons/man.png') }}" alt="Man Avatar" class="w-full h-full object-cover">
+                    </div>
+                    <span class="font-semibold text-gray-900">Man</span>
+                    @if($faculty->avatar === 'man.png')
+                    <span class="text-xs text-lnu-blue font-medium mt-2">✓ Selected</span>
+                    @endif
+                </button>
+
+                <!-- Woman Avatar Option -->
+                <button type="button" @click="@this.call('updateAvatar', 'woman.png')" class="flex flex-col items-center focus:outline-none group">
+                    <div class="w-32 h-32 rounded-full border-4 @if($faculty->avatar === 'woman.png') border-lnu-blue @else border-gray-200 group-hover:border-gray-300 @endif overflow-hidden mb-4 transition cursor-pointer">
+                        <img src="{{ asset('icons/woman.png') }}" alt="Woman Avatar" class="w-full h-full object-cover">
+                    </div>
+                    <span class="font-semibold text-gray-900">Woman</span>
+                    @if($faculty->avatar === 'woman.png')
+                    <span class="text-xs text-lnu-blue font-medium mt-2">✓ Selected</span>
+                    @endif
+                </button>
+            </div>
+        </div>
+
+        <x-slot name="footer">
+            <button x-on:click="$dispatch('close')" class="px-4 py-2 bg-gray-100 text-gray-900 rounded-lg hover:bg-gray-200 transition font-medium">
+                Close
+            </button>
+        </x-slot>
+    </x-modal>
 </div>

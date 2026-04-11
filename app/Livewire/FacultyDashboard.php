@@ -16,6 +16,12 @@ class FacultyDashboard extends Component
             ->firstOrFail();
     }
 
+    public function updateAvatar($avatar)
+    {
+        $this->faculty->update(['avatar' => $avatar]);
+        $this->dispatch('close');
+    }
+
     public function render()
     {
         $totalHours = 0;
