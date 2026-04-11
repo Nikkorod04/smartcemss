@@ -15,7 +15,7 @@ class AssessmentFieldMapper
             // For structured data (Excel/CSV), map the first row to fields
             $firstRow = $extractedData['data'][0] ?? [];
             $mappedFields = $this->mapStructuredData($firstRow);
-        } elseif ($sourceType === 'pdf' || $sourceType === 'image') {
+        } elseif ($sourceType === 'pdf' || $sourceType === 'image' || $sourceType === 'images') {
             // For unstructured text (PDF/Image), extract key-value pairs
             $text = $extractedData['text'] ?? $extractedData['raw_text'] ?? '';
             $mappedFields = $this->mapUnstructuredText($text);
@@ -202,66 +202,267 @@ class AssessmentFieldMapper
     protected function mapUnstructuredText(string $text): array
     {
         $mappedFields = [];
-
-        // Split text into lines
+        
+        // Build label-to-field mapping based on OCR text patterns
+        $labelMap = [
+            // SECTION I
+            'first name' => 'respondent_first_name',
+            'middle name' => 'respondent_middle_name',
+            'last name' => 'respondent_last_name',
+            'age' => 'respondent_age',
+            'civil status' => 'respondent_civil_status',
+            'sex' => 'respondent_sex',
+            'gender' => 'respondent_sex',
+            'religion' => 'respondent_religion',
+            'educational attainment' => 'respondent_educational_attainment',
+            
+            // SECTION II
+            'family adults' => 'family_adults',
+            'number of adults' => 'family_adults',
+            'family children' => 'family_children',
+            'number of children' => 'family_children',
+            
+            // SECTION III
+            'livelihood' => 'livelihood_options',
+            'livelihood options' => 'livelihood_options',
+            'interested in livelihood training' => 'interested_in_livelihood_training',
+            'desired training' => 'desired_training',
+            
+            // SECTION IV
+            'educational facilities' => 'barangay_educational_facilities',
+            'currently studying' => 'household_member_currently_studying',
+            'continuing studies' => 'interested_in_continuing_studies',
+            'areas of educational interest' => 'areas_of_educational_interest',
+            'preferred training time' => 'preferred_training_time',
+            'preferred training days' => 'preferred_training_days',
+            'training days' => 'preferred_training_days',
+            
+            // SECTION V
+            'common illnesses' => 'common_illnesses',
+            'illnesses' => 'common_illnesses',
+            'action when sick' => 'action_when_sick',
+            'medical supplies' => 'barangay_medical_supplies_available',
+            'health programs' => 'has_barangay_health_programs',
+            'benefits from programs' => 'benefits_from_barangay_programs',
+            'programs benefited' => 'programs_benefited_from',
+            'water source' => 'water_source',
+            'garbage disposal' => 'garbage_disposal_method',
+            'own toilet' => 'has_own_toilet',
+            'toilet type' => 'toilet_type',
+            'keeps animals' => 'keeps_animals',
+            'animals kept' => 'animals_kept',
+            
+            // SECTION VI
+            'house type' => 'house_type',
+            'tenure status' => 'tenure_status',
+            'electricity' => 'has_electricity',
+            'light source' => 'light_source_without_power',
+            'appliances' => 'appliances_owned',
+            
+            // SECTION VII
+            'recreational facilities' => 'barangay_recreational_facilities',
+            'use of free time' => 'use_of_free_time',
+            'free time' => 'use_of_free_time',
+            'member of organization' => 'member_of_organization',
+            'organization types' => 'organization_types',
+            'organization:' => 'organization_types',
+            'meeting frequency' => 'organization_meeting_frequency',
+            'usual activities' => 'organization_usual_activities',
+            'household members in organization' => 'household_members_in_organization',
+            'position in organization' => 'position_in_organization',
+            
+            // SECTION VIII
+            'family problems' => 'family_problems',
+            'health problems' => 'health_problems',
+            'educational problems' => 'educational_problems',
+            'employment problems' => 'employment_problems',
+            'infrastructure problems' => 'infrastructure_problems',
+            'economic problems' => 'economic_problems',
+            'security problems' => 'security_problems',
+            
+            // SECTION IX
+            'service ratings' => 'barangay_service_ratings',
+            'general feedback' => 'general_feedback',
+            'feedback' => 'general_feedback',
+            'available for training' => 'available_for_training',
+            'reason not available' => 'reason_not_available',
+        ];
+        
+        // Normalize text for searching
+        $textLower = strtolower($text);
         $lines = preg_split('/\r\n|\r|\n/', $text);
-        $text = strtolower($text);
-
-        // Extract respondent name patterns
-        if (preg_match('/(?:name|fullname|respondent).*?:\s*([A-Za-z\s]+)/i', $text, $matches)) {
-            $name = trim($matches[1]);
-            $nameParts = explode(' ', $name);
-            if (count($nameParts) >= 1) {
-                $mappedFields['respondent_first_name'] = $nameParts[0] ?? null;
-                if (count($nameParts) >= 3) {
-                    $mappedFields['respondent_middle_name'] = $nameParts[1];
-                    $mappedFields['respondent_last_name'] = $nameParts[2];
-                } elseif (count($nameParts) >= 2) {
-                    $mappedFields['respondent_last_name'] = $nameParts[1];
+        
+        // For each line, check if it starts a field label
+        for ($i = 0; $i < count($lines); $i++) {
+            $line = trim($lines[$i]);
+            $lineLower = strtolower($line);
+            
+            // Skip empty and section header lines
+            if (empty($line) || preg_match('/^SECTION/i', $line)) {
+                continue;
+            }
+            
+            // Check if this line starts with a known field label
+            foreach ($labelMap as $label => $fieldName) {
+                if (stripos($lineLower, $label) === 0) {
+                    // Found a field label, extract the value(s)
+                    $fieldName = $labelMap[$label];
+                    
+                    // Get the part after the label
+                    $labelLength = strlen($label);
+                    $remainder = trim(substr($line, $labelLength));
+                    
+                    // Remove common separators
+                    $remainder = trim(str_replace([':', '?', '*'], '', $remainder));
+                    
+                    // Collect values from this line and following lines until next label or section
+                    $values = [];
+                    if (!empty($remainder)) {
+                        $values[] = $remainder;
+                    }
+                    
+                    // Look at following lines for more values (until we hit another field or section)
+                    $j = $i + 1;
+                    while ($j < count($lines)) {
+                        $nextLine = trim($lines[$j]);
+                        
+                        // Stop at section headers
+                        if (preg_match('/^SECTION/i', $nextLine)) {
+                            break;
+                        }
+                        
+                        // Stop at next field label
+                        if (preg_match('/^(' . implode('|', array_map('preg_quote', array_keys($labelMap))) . ')/i', $nextLine)) {
+                            break;
+                        }
+                        
+                        // Add non-empty lines as values
+                        if (!empty($nextLine)) {
+                            // Clean checkbox markers like "O", "X", "☐", etc.
+                            $cleaned = trim(preg_replace('/^[O✓☐☑✗X●○\-\s]+/i', '', $nextLine));
+                            if (!empty($cleaned)) {
+                                $values[] = $cleaned;
+                            }
+                        }
+                        
+                        $j++;
+                    }
+                    
+                    // Process collected values
+                    if (!empty($values)) {
+                        $processedValue = $this->processExtractedValue($fieldName, $values);
+                        if ($processedValue !== null) {
+                            $mappedFields[$fieldName] = $processedValue;
+                        }
+                    }
+                    
+                    break; // Only match first label per line
                 }
             }
         }
-
-        // Extract age
-        if (preg_match('/(?:age).*?:\s*(\d+)/i', $text, $matches)) {
-            $mappedFields['respondent_age'] = intval($matches[1]);
-        }
-
-        // Extract sex/gender
-        if (preg_match('/(?:sex|gender).*?:\s*(male|female|other)/i', $text, $matches)) {
-            $mappedFields['respondent_sex'] = ucfirst($matches[1]);
-        }
-
-        // Extract civil status
-        if (preg_match('/(?:civil|marital|status).*?:\s*(single|married|widowed|divorced|separated)/i', $text, $matches)) {
-            $mappedFields['respondent_civil_status'] = ucfirst($matches[1]);
-        }
-
-        // Extract religion
-        if (preg_match('/(?:religion|faith).*?:\s*([A-Za-z\s]+?)(?:\n|$)/i', $text, $matches)) {
-            $mappedFields['respondent_religion'] = trim($matches[1]);
-        }
-
-        // Extract family info
-        if (preg_match('/(?:adult|male.*?\d+|female.*?adult).*?:\s*(\d+)/i', $text, $matches)) {
-            $mappedFields['family_adults'] = intval($matches[1]);
-        }
-
-        if (preg_match('/(?:children|child).*?:\s*(\d+)/i', $text, $matches)) {
-            $mappedFields['family_children'] = intval($matches[1]);
-        }
-
-        // Extract quarter
-        if (preg_match('/(?:quarter|q[14]).*?:\s*(q[1-4]|[1-4])/i', $text, $matches)) {
-            $mappedFields['quarter'] = strtoupper('Q' . substr($matches[1], -1));
-        }
-
-        // Extract year
-        if (preg_match('/(?:year).*?:\s*(20\d{2})/i', $text, $matches)) {
-            $mappedFields['year'] = intval($matches[1]);
-        }
-
+        
         return $mappedFields;
+    }
+    
+    /**
+     * Process extracted values based on field type
+     */
+    protected function processExtractedValue(string $fieldName, array $values)
+    {
+        // Array fields (checkboxes, multi-select)
+        $arrayFields = [
+            'respondent_educational_attainment',
+            'livelihood_options',
+            'desired_training',
+            'barangay_educational_facilities',
+            'areas_of_educational_interest',
+            'preferred_training_days',
+            'common_illnesses',
+            'action_when_sick',
+            'barangay_medical_supplies_available',
+            'programs_benefited_from',
+            'water_source',
+            'garbage_disposal_method',
+            'toilet_type',
+            'animals_kept',
+            'house_type',
+            'tenure_status',
+            'light_source_without_power',
+            'appliances_owned',
+            'barangay_recreational_facilities',
+            'use_of_free_time',
+            'organization_types',
+            'household_members_in_organization',
+            'family_problems',
+            'health_problems',
+            'educational_problems',
+            'employment_problems',
+            'infrastructure_problems',
+            'economic_problems',
+            'security_problems',
+            'barangay_service_ratings',
+        ];
+        
+        // Boolean fields (Yes/No)
+        $booleanFields = [
+            'household_member_currently_studying',
+            'interested_in_continuing_studies',
+            'has_barangay_health_programs',
+            'has_own_toilet',
+            'keeps_animals',
+            'has_electricity',
+            'member_of_organization',
+            'available_for_training',
+            'interested_in_livelihood_training',
+            'benefits_from_barangay_programs',
+        ];
+        
+        // Numeric fields
+        $numericFields = [
+            'respondent_age',
+            'family_adults',
+            'family_children',
+            'year',
+            'water_source_distance',
+            'organization_meeting_frequency',
+            'household_members_in_organization',
+        ];
+        
+        // Handle different field types
+        if (in_array($fieldName, $arrayFields)) {
+            return array_filter(array_map('trim', $values));
+        }
+        
+        if (in_array($fieldName, $booleanFields)) {
+            $text = strtolower(implode(' ', $values));
+            if (preg_match('/\b(yes|checked|true|selected|✓)\b/i', $text)) {
+                return 'Yes';
+            } elseif (preg_match('/\b(no|unchecked|false|not selected|☐)\b/i', $text)) {
+                return 'No';
+            }
+            return null;
+        }
+        
+        if (in_array($fieldName, $numericFields)) {
+            $numValue = null;
+            foreach ($values as $value) {
+                if (preg_match('/\d+/', $value, $matches)) {
+                    $numValue = intval($matches[0]);
+                    break;
+                }
+            }
+            return $numValue;
+        }
+        
+        // Default: single string value (first non-empty)
+        foreach ($values as $value) {
+            $trimmed = trim($value);
+            if (!empty($trimmed)) {
+                return $trimmed;
+            }
+        }
+        
+        return null;
     }
 
     /**
