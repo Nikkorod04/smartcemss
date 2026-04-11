@@ -32,6 +32,11 @@ class OcrService
     public function extractFromImage(UploadedFile $file): array
     {
         try {
+            \Log::info('OcrService.extractFromImage called', [
+                'file_name' => $file->getClientOriginalName(),
+                'file_size' => $file->getSize()
+            ]);
+            
             $imageData = file_get_contents($file->getRealPath());
             $image = (new Image())->setContent($imageData);
 
@@ -40,6 +45,7 @@ class OcrService
             $document = $response->getFullTextAnnotation();
 
             if (!$document) {
+                \Log::warning('No text detected in image');
                 return [
                     'success' => false,
                     'error' => 'No text detected in image'
@@ -47,6 +53,7 @@ class OcrService
             }
 
             $text = $document->getText();
+            \Log::info('Text extracted from image', ['text_length' => strlen($text)]);
 
             return [
                 'success' => true,
@@ -55,6 +62,10 @@ class OcrService
                 'type' => 'image'
             ];
         } catch (\Exception $e) {
+            \Log::error('Image OCR failed', [
+                'message' => $e->getMessage(),
+                'exception' => get_class($e)
+            ]);
             return [
                 'success' => false,
                 'error' => 'OCR failed: ' . $e->getMessage()
@@ -69,17 +80,31 @@ class OcrService
     public function extractFromPdf(UploadedFile $file): array
     {
         try {
+            \Log::info('OcrService.extractFromPdf called', [
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $file->getRealPath(),
+                'file_size' => $file->getSize()
+            ]);
+            
             $pdfData = file_get_contents($file->getRealPath());
+            \Log::info('PDF data read', ['size' => strlen($pdfData)]);
             
             // For large PDFs, use batch request with PDF MIME type
             $image = (new Image())->setContent($pdfData);
+            \Log::info('Image object created');
+            
             $gcsSourceUri = null; // Could use GCS URI for large files
 
             // Use document text detection for better results with forms
+            \Log::info('Calling Google Vision API for document text detection');
             $response = $this->client->documentTextDetection($image);
+            \Log::info('Google Vision API response received');
+            
             $document = $response->getFullTextAnnotation();
+            \Log::info('Full text annotation extracted', ['document_null' => $document === null]);
 
             if (!$document) {
+                \Log::warning('No text detected in PDF');
                 return [
                     'success' => false,
                     'error' => 'No text detected in PDF'
@@ -87,6 +112,7 @@ class OcrService
             }
 
             $text = $document->getText();
+            \Log::info('Text extracted from PDF', ['text_length' => strlen($text)]);
 
             return [
                 'success' => true,
@@ -95,6 +121,13 @@ class OcrService
                 'type' => 'pdf'
             ];
         } catch (\Exception $e) {
+            \Log::error('PDF OCR failed', [
+                'exception' => get_class($e),
+                'message' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
             return [
                 'success' => false,
                 'error' => 'PDF OCR failed: ' . $e->getMessage()
