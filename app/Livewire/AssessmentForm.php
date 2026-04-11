@@ -348,7 +348,7 @@ class AssessmentForm extends Component
                 $ocrService = null;
                 try {
                     $credentialsFile = env('GOOGLE_CREDENTIALS_FILE', 'google-credentials.json');
-                    $credentialsPath = storage_path('app/' . $credentialsFile);
+                    $credentialsPath = storage_path('app' . DIRECTORY_SEPARATOR . $credentialsFile);
                     if (file_exists($credentialsPath)) {
                         $ocrService = new \App\Services\OcrService();
                     }

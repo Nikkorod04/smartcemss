@@ -19,7 +19,7 @@ class OcrService
         // Initialize Google Vision API client using service account credentials
         // Check for custom filename in .env, otherwise use default
         $credentialsFile = env('GOOGLE_CREDENTIALS_FILE', 'google-credentials.json');
-        $credentialsPath = storage_path('app/' . $credentialsFile);
+        $credentialsPath = storage_path('app' . DIRECTORY_SEPARATOR . $credentialsFile);
         
         if (!file_exists($credentialsPath)) {
             throw new \Exception('Google Cloud credentials file not found at ' . $credentialsPath . 

@@ -19,7 +19,7 @@ class AssessmentDocumentParser
         try {
             // Check for custom credentials filename from env, or use default
             $credentialsFile = env('GOOGLE_CREDENTIALS_FILE', 'google-credentials.json');
-            $credentialsPath = storage_path('app/' . $credentialsFile);
+            $credentialsPath = storage_path('app' . DIRECTORY_SEPARATOR . $credentialsFile);
             
             \Log::info('OCR Setup Check', [
                 'credentials_file' => $credentialsFile,
@@ -192,7 +192,7 @@ class AssessmentDocumentParser
         if (!$this->ocrService) {
             try {
                 $credentialsFile = env('GOOGLE_CREDENTIALS_FILE', 'google-credentials.json');
-                $credentialsPath = storage_path('app/' . $credentialsFile);
+                $credentialsPath = storage_path('app' . DIRECTORY_SEPARATOR . $credentialsFile);
                 
                 if (file_exists($credentialsPath)) {
                     $this->ocrService = new OcrService();
