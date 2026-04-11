@@ -21,60 +21,7 @@
                 </div>
             </div>
 
-            <!-- Dashboard Stats -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 pb-8 border-b border-gray-200">
-                <!-- Programs Count -->
-                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium">Programs Involved</p>
-                            <p class="text-2xl font-bold text-lnu-blue mt-1">{{ count($programsLed) + count($programsInvolved) }}</p>
-                        </div>
-                        <svg class="w-8 h-8 text-lnu-blue opacity-30" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />
-                        </svg>
-                    </div>
-                </div>
 
-                <!-- Hours Count -->
-                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium">Total Hours</p>
-                            <p class="text-2xl font-bold text-green-600 mt-1">{{ $totalHours }}</p>
-                        </div>
-                        <svg class="w-8 h-8 text-green-600 opacity-30" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z" />
-                        </svg>
-                    </div>
-                </div>
-
-                <!-- Activities Count -->
-                <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium">Activities</p>
-                            <p class="text-2xl font-bold text-purple-600 mt-1">{{ count($recentActivities) }}</p>
-                        </div>
-                        <svg class="w-8 h-8 text-purple-600 opacity-30" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M19 13h-6v6h6v-6zm0-6h-6v6h6V7zM13 7H7v6h6V7zM7 13H1v6h6v-6zm12-12H1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V2c0-1.1-.9-2-2-2z" />
-                        </svg>
-                    </div>
-                </div>
-
-                <!-- Pending Submissions -->
-                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium">Pending Submissions</p>
-                            <p class="text-2xl font-bold text-yellow-600 mt-1">0</p>
-                        </div>
-                        <svg class="w-8 h-8 text-yellow-600 opacity-30" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M17 10.5V7c0 .55-.45 1-1 1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
 
             <!-- Profile Information Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
