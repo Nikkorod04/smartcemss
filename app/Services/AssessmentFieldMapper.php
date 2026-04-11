@@ -10,6 +10,13 @@ class AssessmentFieldMapper
     public function mapDataToFields(array $extractedData, string $sourceType = 'excel'): array
     {
         $mappedFields = [];
+        
+        \Log::info('mapDataToFields called', [
+            'sourceType' => $sourceType,
+            'extractedDataKeys' => array_keys($extractedData),
+            'textLength' => strlen($extractedData['text'] ?? ''),
+            'rawTextLength' => strlen($extractedData['raw_text'] ?? '')
+        ]);
 
         if ($sourceType === 'excel' || $sourceType === 'csv') {
             // For structured data (Excel/CSV), map the first row to fields
@@ -18,6 +25,10 @@ class AssessmentFieldMapper
         } elseif ($sourceType === 'pdf' || $sourceType === 'image' || $sourceType === 'images') {
             // For unstructured text (PDF/Image), extract key-value pairs
             $text = $extractedData['text'] ?? $extractedData['raw_text'] ?? '';
+            \Log::info('mapUnstructuredText input', [
+                'textLength' => strlen($text),
+                'textPreview' => substr($text, 0, 200)
+            ]);
             $mappedFields = $this->mapUnstructuredText($text);
         }
 
@@ -203,6 +214,12 @@ class AssessmentFieldMapper
     {
         $mappedFields = [];
         
+        // Empty text check
+        if (empty(trim($text))) {
+            \Log::warning('mapUnstructuredText received empty text');
+            return [];
+        }
+        
         // Exact field labels from the PDF form (case-insensitive matching)
         $labelMap = [
             // SECTION I: Identifying Information
@@ -305,17 +322,8 @@ class AssessmentFieldMapper
         $labelPattern = implode('|', $escapedLabels);
         $pattern = '/(' . $labelPattern . ')\s*:\s*([^:\n]*?)(?=(?:' . $labelPattern . ')\s*:|$)/ims';
         
-        // Debug logging
-        \Log::debug('Field mapper pattern matching', [
-            'pattern' => $pattern,
-            'text_length' => strlen($text),
-            'text_preview' => substr($text, 0, 200)
-        ]);
-        
         // Extract all label: value pairs using regex
         if (preg_match_all($pattern, $text, $matches, PREG_SET_ORDER)) {
-            \Log::debug('Pattern matches found', ['count' => count($matches)]);
-            
             foreach ($matches as $match) {
                 $capturedLabel = trim($match[1]);
                 $value = trim($match[2]);
@@ -331,12 +339,6 @@ class AssessmentFieldMapper
                         break;
                     }
                 }
-                
-                \Log::debug('Processing match', [
-                    'label' => $capturedLabel,
-                    'field_name' => $fieldName,
-                    'value_preview' => substr($value, 0, 50)
-                ]);
                 
                 if ($fieldName && !empty($value)) {
                     // Remove common separators and cleanup
@@ -361,8 +363,6 @@ class AssessmentFieldMapper
                     }
                 }
             }
-        } else {
-            \Log::warning('No pattern matches found in text');
         }
         
         return $mappedFields;
