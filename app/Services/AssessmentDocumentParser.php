@@ -188,12 +188,35 @@ class AssessmentDocumentParser
      */
     protected function parseImage(UploadedFile $file): array
     {
-        // If OCR service is not available, return error
+        // If OCR service is not available, try to re-initialize it
         if (!$this->ocrService) {
-            return [
-                'success' => false,
-                'error' => 'OCR service not configured. Please configure Google Cloud Vision credentials in storage/app/google-credentials.json'
-            ];
+            try {
+                $credentialsFile = env('GOOGLE_CREDENTIALS_FILE', 'google-credentials.json');
+                $credentialsPath = storage_path('app/' . $credentialsFile);
+                
+                if (file_exists($credentialsPath)) {
+                    $this->ocrService = new OcrService();
+                    \Log::info('OcrService re-initialized for image parsing');
+                } else {
+                    \Log::error('Credentials file not found for image parsing', [
+                        'path' => $credentialsPath,
+                        'env_var' => $credentialsFile
+                    ]);
+                    return [
+                        'success' => false,
+                        'error' => 'OCR service not configured. Please ensure Google Cloud Vision credentials are placed in storage/app/' . $credentialsFile
+                    ];
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed to initialize OcrService for image', [
+                    'exception' => get_class($e),
+                    'message' => $e->getMessage()
+                ]);
+                return [
+                    'success' => false,
+                    'error' => 'Failed to initialize OCR service: ' . $e->getMessage()
+                ];
+            }
         }
 
         try {
@@ -203,15 +226,22 @@ class AssessmentDocumentParser
                 return $ocrResult;
             }
 
+            // Sanitize extracted text
+            $sanitizedText = $this->sanitizeUtf8($ocrResult['text']);
+
             return [
                 'success' => true,
-                'text' => $ocrResult['text'],
+                'text' => $sanitizedText,
                 'type' => 'image',
                 'ocr_method' => 'google_vision',
                 'confidence' => $ocrResult['confidence'] ?? 0,
-                'raw_text' => $ocrResult['text']
+                'raw_text' => $sanitizedText
             ];
         } catch (\Exception $e) {
+            \Log::error('Image parsing failed', [
+                'exception' => get_class($e),
+                'message' => $e->getMessage()
+            ]);
             return ['success' => false, 'error' => 'Failed to process image: ' . $e->getMessage()];
         }
     }
@@ -373,6 +403,25 @@ class AssessmentDocumentParser
         }
 
         return $count > 0 ? round(($totalConfidence / $count) * 100, 2) : 0;
+    }
+
+    /**
+     * Sanitize text to ensure valid UTF-8 encoding
+     */
+    protected function sanitizeUtf8(string $text): string
+    {
+        // Use iconv to remove invalid UTF-8 sequences
+        $sanitized = iconv('UTF-8', 'UTF-8//IGNORE', $text);
+        
+        if ($sanitized === false) {
+            // Fallback: remove control characters
+            $sanitized = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $text);
+        }
+        
+        // Clean up excessive whitespace
+        $sanitized = preg_replace('/\s+/', ' ', $sanitized);
+        
+        return trim($sanitized);
     }
 }
 
