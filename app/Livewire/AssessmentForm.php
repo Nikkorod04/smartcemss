@@ -429,6 +429,16 @@ class AssessmentForm extends Component
             // Map extracted data to form fields
             $mapper = new AssessmentFieldMapper();
             $mappedData = $mapper->mapDataToFields($result, $result['type']);
+            
+            // Log extracted text and mapped fields for debugging
+            \Log::info('OCR text extracted', [
+                'text_length' => strlen($result['text'] ?? ''),
+                'text_preview' => substr($result['text'] ?? '', 0, 500)
+            ]);
+            \Log::info('Field mapping complete', [
+                'fields_mapped' => count($mappedData),
+                'field_names' => array_keys($mappedData)
+            ]);
 
             // Store imported data for review
             $this->importedData = $mappedData;
@@ -466,15 +476,31 @@ class AssessmentForm extends Component
     public function populateFromImportedData()
     {
         if (empty($this->importedData)) {
+            \Log::warning('populateFromImportedData called but importedData is empty');
             return;
         }
+
+        $successCount = 0;
+        $failureCount = 0;
+        $failedFields = [];
 
         foreach ($this->importedData as $fieldName => $value) {
             // Use reflection to dynamically set property
             if (property_exists($this, $fieldName)) {
                 $this->$fieldName = $value;
+                $successCount++;
+            } else {
+                $failureCount++;
+                $failedFields[] = $fieldName;
             }
         }
+
+        \Log::info('Form fields populated', [
+            'total_fields' => count($this->importedData),
+            'populated' => $successCount,
+            'failed_to_populate' => $failureCount,
+            'failed_field_names' => $failedFields
+        ]);
 
         $this->showImportedDataReview = false;
         $this->importStatus = null;
