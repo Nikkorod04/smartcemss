@@ -24,11 +24,6 @@
 
         <!-- Content -->
         <div class="relative min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
-            <!-- Logo / Header -->
-            <div class="mb-8 text-center animate-slide-in-down">
-                <img src="{{ asset('ceso_logobig.png') }}" alt="SmartCEMES" class="h-24 mx-auto mb-4 object-contain">
-            </div>
-
             <!-- Form Card -->
             <div class="w-full sm:max-w-md mt-6 px-6 sm:px-8 py-8 bg-white shadow-2xl overflow-hidden sm:rounded-lg animate-scale-in border border-gray-100">
                 {{ $slot }}
