@@ -203,75 +203,69 @@ class AssessmentFieldMapper
     {
         $mappedFields = [];
         
-        // Build label-to-field mapping based on OCR text patterns
+        // Exact field labels from the PDF form (case-insensitive matching)
         $labelMap = [
-            // SECTION I
+            // SECTION I: Identifying Information
             'first name' => 'respondent_first_name',
             'middle name' => 'respondent_middle_name',
             'last name' => 'respondent_last_name',
             'age' => 'respondent_age',
             'civil status' => 'respondent_civil_status',
             'sex' => 'respondent_sex',
-            'gender' => 'respondent_sex',
             'religion' => 'respondent_religion',
             'educational attainment' => 'respondent_educational_attainment',
             
-            // SECTION II
-            'family adults' => 'family_adults',
+            // SECTION II: Family Composition
             'number of adults' => 'family_adults',
-            'family children' => 'family_children',
             'number of children' => 'family_children',
+            'adults in the household' => 'family_adults',
+            'children in the household' => 'family_children',
             
-            // SECTION III
-            'livelihood' => 'livelihood_options',
+            // SECTION III: Economic Aspect
             'livelihood options' => 'livelihood_options',
             'interested in livelihood training' => 'interested_in_livelihood_training',
             'desired training' => 'desired_training',
             
-            // SECTION IV
-            'educational facilities' => 'barangay_educational_facilities',
-            'currently studying' => 'household_member_currently_studying',
-            'continuing studies' => 'interested_in_continuing_studies',
+            // SECTION IV: Educational Aspect
+            'barangay educational facilities' => 'barangay_educational_facilities',
+            'household member currently studying' => 'household_member_currently_studying',
+            'interested in continuing studies' => 'interested_in_continuing_studies',
             'areas of educational interest' => 'areas_of_educational_interest',
             'preferred training time' => 'preferred_training_time',
             'preferred training days' => 'preferred_training_days',
-            'training days' => 'preferred_training_days',
             
-            // SECTION V
+            // SECTION V: Health, Sanitation & Environmental
             'common illnesses' => 'common_illnesses',
-            'illnesses' => 'common_illnesses',
             'action when sick' => 'action_when_sick',
-            'medical supplies' => 'barangay_medical_supplies_available',
-            'health programs' => 'has_barangay_health_programs',
-            'benefits from programs' => 'benefits_from_barangay_programs',
-            'programs benefited' => 'programs_benefited_from',
+            'barangay medical supplies available' => 'barangay_medical_supplies_available',
+            'has barangay health programs' => 'has_barangay_health_programs',
+            'benefits from barangay programs' => 'benefits_from_barangay_programs',
+            'programs benefited from' => 'programs_benefited_from',
             'water source' => 'water_source',
+            'water source distance' => 'water_source_distance',
             'garbage disposal' => 'garbage_disposal_method',
-            'own toilet' => 'has_own_toilet',
+            'has own toilet' => 'has_own_toilet',
             'toilet type' => 'toilet_type',
             'keeps animals' => 'keeps_animals',
             'animals kept' => 'animals_kept',
             
-            // SECTION VI
+            // SECTION VI: Housing and Basic Amenities
             'house type' => 'house_type',
             'tenure status' => 'tenure_status',
-            'electricity' => 'has_electricity',
-            'light source' => 'light_source_without_power',
-            'appliances' => 'appliances_owned',
+            'has electricity' => 'has_electricity',
+            'appliances owned' => 'appliances_owned',
             
-            // SECTION VII
-            'recreational facilities' => 'barangay_recreational_facilities',
+            // SECTION VII: Recreational Facilities
+            'barangay recreational facilities' => 'barangay_recreational_facilities',
             'use of free time' => 'use_of_free_time',
-            'free time' => 'use_of_free_time',
             'member of organization' => 'member_of_organization',
-            'organization types' => 'organization_types',
-            'organization:' => 'organization_types',
+            'organizational type' => 'organization_types',
             'meeting frequency' => 'organization_meeting_frequency',
+            'position in organization' => 'position_in_organization',
             'usual activities' => 'organization_usual_activities',
             'household members in organization' => 'household_members_in_organization',
-            'position in organization' => 'position_in_organization',
             
-            // SECTION VIII
+            // SECTION VIII: Other Needs & Problems
             'family problems' => 'family_problems',
             'health problems' => 'health_problems',
             'educational problems' => 'educational_problems',
@@ -280,17 +274,26 @@ class AssessmentFieldMapper
             'economic problems' => 'economic_problems',
             'security problems' => 'security_problems',
             
-            // SECTION IX
-            'service ratings' => 'barangay_service_ratings',
+            // SECTION IX: Summary Barangay Service Ratings
+            'law enforcement' => 'barangay_service_ratings',
+            'fire protection' => 'barangay_service_ratings',
+            'bns service' => 'barangay_service_ratings',
+            'street lighting' => 'barangay_service_ratings',
+            'water system' => 'barangay_service_ratings',
+            'sanitation' => 'barangay_service_ratings',
+            'health service' => 'barangay_service_ratings',
+            'education service' => 'barangay_service_ratings',
+            'infrastructure service' => 'barangay_service_ratings',
             'general feedback' => 'general_feedback',
-            'feedback' => 'general_feedback',
             'available for training' => 'available_for_training',
-            'reason not available' => 'reason_not_available',
         ];
         
         // Normalize text for searching
         $textLower = strtolower($text);
         $lines = preg_split('/\r\n|\r|\n/', $text);
+        
+        // Track processed service ratings (1-5 scale)
+        $serviceRatings = [];
         
         // For each line, check if it starts a field label
         for ($i = 0; $i < count($lines); $i++) {
@@ -298,67 +301,91 @@ class AssessmentFieldMapper
             $lineLower = strtolower($line);
             
             // Skip empty and section header lines
-            if (empty($line) || preg_match('/^SECTION/i', $line)) {
+            if (empty($line) || preg_match('/^SECTION\s+(I|II|III|IV|V|VI|VII|VIII|IX)/i', $line)) {
                 continue;
             }
             
             // Check if this line starts with a known field label
+            $matchedField = null;
+            $matchLength = 0;
+            
             foreach ($labelMap as $label => $fieldName) {
                 if (stripos($lineLower, $label) === 0) {
-                    // Found a field label, extract the value(s)
-                    $fieldName = $labelMap[$label];
-                    
-                    // Get the part after the label
-                    $labelLength = strlen($label);
-                    $remainder = trim(substr($line, $labelLength));
-                    
-                    // Remove common separators
-                    $remainder = trim(str_replace([':', '?', '*'], '', $remainder));
-                    
-                    // Collect values from this line and following lines until next label or section
-                    $values = [];
-                    if (!empty($remainder)) {
-                        $values[] = $remainder;
+                    // Found a matching label - use longest match to avoid false matches
+                    if (strlen($label) > $matchLength) {
+                        $matchedField = $fieldName;
+                        $matchLength = strlen($label);
                     }
-                    
-                    // Look at following lines for more values (until we hit another field or section)
-                    $j = $i + 1;
-                    while ($j < count($lines)) {
-                        $nextLine = trim($lines[$j]);
-                        
-                        // Stop at section headers
-                        if (preg_match('/^SECTION/i', $nextLine)) {
-                            break;
-                        }
-                        
-                        // Stop at next field label
-                        if (preg_match('/^(' . implode('|', array_map('preg_quote', array_keys($labelMap))) . ')/i', $nextLine)) {
-                            break;
-                        }
-                        
-                        // Add non-empty lines as values
-                        if (!empty($nextLine)) {
-                            // Clean checkbox markers like "O", "X", "☐", etc.
-                            $cleaned = trim(preg_replace('/^[O✓☐☑✗X●○\-\s]+/i', '', $nextLine));
-                            if (!empty($cleaned)) {
-                                $values[] = $cleaned;
-                            }
-                        }
-                        
-                        $j++;
-                    }
-                    
-                    // Process collected values
-                    if (!empty($values)) {
-                        $processedValue = $this->processExtractedValue($fieldName, $values);
-                        if ($processedValue !== null) {
-                            $mappedFields[$fieldName] = $processedValue;
-                        }
-                    }
-                    
-                    break; // Only match first label per line
                 }
             }
+            
+            if ($matchedField) {
+                // Get the part after the label (value)
+                $remainder = trim(substr($line, $matchLength));
+                
+                // Remove common separators and cleanup
+                $remainder = trim(str_replace([':', '?', '*', '☐', '☑', '○', '●'], '', $remainder));
+                
+                // Collect values from this line and following lines
+                $values = [];
+                if (!empty($remainder)) {
+                    $values[] = $remainder;
+                }
+                
+                // Look at following lines for more values
+                $j = $i + 1;
+                while ($j < count($lines)) {
+                    $nextLine = trim($lines[$j]);
+                    
+                    // Stop at section headers
+                    if (preg_match('/^SECTION\s+(I|II|III|IV|V|VI|VII|VIII|IX)/i', $nextLine)) {
+                        break;
+                    }
+                    
+                    // Stop at next field label (check against all known labels)
+                    $isNextLabel = false;
+                    foreach (array_keys($labelMap) as $label) {
+                        if (stripos(strtolower($nextLine), $label) === 0) {
+                            $isNextLabel = true;
+                            break;
+                        }
+                    }
+                    
+                    if ($isNextLabel) {
+                        break;
+                    }
+                    
+                    // Add non-empty, non-separator lines as values
+                    if (!empty($nextLine)) {
+                        // Clean the line
+                        $cleaned = trim(preg_replace('/^[\s:?*→\-•○●☐☑\d\.]+/i', '', $nextLine));
+                        if (!empty($cleaned) && strlen($cleaned) > 1) {
+                            $values[] = $cleaned;
+                        }
+                    }
+                    
+                    $j++;
+                }
+                
+                // Process collected values based on field type
+                if (!empty($values)) {
+                    $processedValue = $this->processExtractedValue($matchedField, $values, $matchLength);
+                    if ($processedValue !== null) {
+                        // Handle service ratings specially (accumulate them)
+                        if ($matchedField === 'barangay_service_ratings') {
+                            $labelKey = substr($line, 0, $matchLength);
+                            $serviceRatings[$labelKey] = $processedValue;
+                        } else {
+                            $mappedFields[$matchedField] = $processedValue;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // If we have service ratings, store them as JSON (label => rating pairs)
+        if (!empty($serviceRatings)) {
+            $mappedFields['barangay_service_ratings'] = $serviceRatings;
         }
         
         return $mappedFields;
@@ -367,7 +394,7 @@ class AssessmentFieldMapper
     /**
      * Process extracted values based on field type
      */
-    protected function processExtractedValue(string $fieldName, array $values)
+    protected function processExtractedValue(string $fieldName, array $values, int $labelLength = 0)
     {
         // Array fields (checkboxes, multi-select)
         $arrayFields = [
@@ -400,7 +427,6 @@ class AssessmentFieldMapper
             'infrastructure_problems',
             'economic_problems',
             'security_problems',
-            'barangay_service_ratings',
         ];
         
         // Boolean fields (Yes/No)
@@ -435,10 +461,24 @@ class AssessmentFieldMapper
         
         if (in_array($fieldName, $booleanFields)) {
             $text = strtolower(implode(' ', $values));
-            if (preg_match('/\b(yes|checked|true|selected|✓)\b/i', $text)) {
+            if (preg_match('/\b(yes|checked|true|selected|✓|x|yup|yesyes|yeah)\b/i', $text)) {
                 return 'Yes';
-            } elseif (preg_match('/\b(no|unchecked|false|not selected|☐)\b/i', $text)) {
+            } elseif (preg_match('/\b(no|unchecked|false|not selected|☐|none|nope)\b/i', $text)) {
                 return 'No';
+            }
+            // If text is written, treat as Yes
+            if (!empty(trim(implode('', $values)))) {
+                return 'Yes';
+            }
+            return null;
+        }
+        
+        if ($fieldName === 'barangay_service_ratings') {
+            // Extract numeric rating (1-5)
+            foreach ($values as $value) {
+                if (preg_match('/\b([1-5])\b/', $value, $matches)) {
+                    return intval($matches[1]);
+                }
             }
             return null;
         }
