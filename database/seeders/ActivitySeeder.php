@@ -41,6 +41,7 @@ class ActivitySeeder extends Seeder
                 'venue' => 'Barangay San Juan Community Center',
                 'status' => 'completed',
                 'notes' => 'Successfully completed with 85% attendance rate. Students showed significant improvement in letter recognition.',
+                'allocated_budget' => 50000,
             ],
             [
                 'extension_program_id' => $programs->first()->id,
@@ -51,6 +52,7 @@ class ActivitySeeder extends Seeder
                 'venue' => 'Barangay Diliman Elementary School',
                 'status' => 'completed',
                 'notes' => 'Good progress observed. All students able to read at least 10 sight words by end of week.',
+                'allocated_budget' => 50000,
             ],
             [
                 'extension_program_id' => $programs->first()->id,
@@ -61,6 +63,7 @@ class ActivitySeeder extends Seeder
                 'venue' => 'Barangay Tondo Community Center',
                 'status' => 'ongoing',
                 'notes' => 'Currently in progress. Observing good engagement from students.',
+                'allocated_budget' => 50000,
             ],
             [
                 'extension_program_id' => $programs->first()->id,
@@ -71,6 +74,7 @@ class ActivitySeeder extends Seeder
                 'venue' => 'Barangay San Juan Community Hall',
                 'status' => 'pending',
                 'notes' => 'Scheduled for next month. Preparing parent orientation materials.',
+                'allocated_budget' => 25000,
             ],
             [
                 'extension_program_id' => $programs->last()->id,
@@ -81,6 +85,7 @@ class ActivitySeeder extends Seeder
                 'venue' => 'LNU Main Conference Room',
                 'status' => 'completed',
                 'notes' => 'All stakeholders present. Project timeline finalized.',
+                'allocated_budget' => 15000,
             ],
             [
                 'extension_program_id' => $programs->last()->id,
@@ -91,6 +96,7 @@ class ActivitySeeder extends Seeder
                 'venue' => 'Palo Municipal Hall',
                 'status' => 'completed',
                 'notes' => 'Attended by 50+ community members. Key issues identified and documented.',
+                'allocated_budget' => 20000,
             ],
         ];
 

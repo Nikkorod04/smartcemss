@@ -49,6 +49,7 @@ class ActivityController extends Controller
             'actual_end_date' => 'required|date|after_or_equal:actual_start_date',
             'venue' => 'required|string|max:255',
             'status' => 'required|in:pending,ongoing,completed',
+            'allocated_budget' => 'required|numeric|min:0',
             'faculties' => 'nullable|array',
             'faculties.*' => 'exists:faculties,id',
             'notes' => 'nullable|string|max:1000',
@@ -61,6 +62,9 @@ class ActivityController extends Controller
             'actual_end_date.after_or_equal' => 'End date must be after or equal to start date.',
             'venue.required' => 'Venue is required.',
             'status.required' => 'Status is required.',
+            'allocated_budget.required' => 'Allocated budget is required.',
+            'allocated_budget.numeric' => 'Allocated budget must be a valid number.',
+            'allocated_budget.min' => 'Allocated budget must be 0 or greater.',
         ]);
 
         $activity = Activity::create($validated);
@@ -78,7 +82,7 @@ class ActivityController extends Controller
      */
     public function show(Activity $activity)
     {
-        $activity->load('extensionProgram', 'faculties', 'attendances.beneficiary');
+        $activity->load('extensionProgram', 'faculties', 'attendances.beneficiary', 'budgetUtilizations');
         
         // Calculate attendance statistics
         $attendanceStats = $this->calculateAttendanceStats($activity);
@@ -115,6 +119,7 @@ class ActivityController extends Controller
             'actual_end_date' => 'required|date|after_or_equal:actual_start_date',
             'venue' => 'required|string|max:255',
             'status' => 'required|in:pending,ongoing,completed',
+            'allocated_budget' => 'required|numeric|min:0',
             'faculties' => 'nullable|array',
             'faculties.*' => 'exists:faculties,id',
             'notes' => 'nullable|string|max:1000',

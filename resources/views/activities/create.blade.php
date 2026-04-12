@@ -77,6 +77,14 @@
                                 <x-input-error :messages="$errors->get('venue')" class="mt-2" />
                             </div>
 
+                            <div>
+                                <x-input-label for="allocated_budget" :value="__('Allocated Budget (₱)')" />
+                                <x-text-input id="allocated_budget" class="block w-full mt-1" type="number" name="allocated_budget" 
+                                             placeholder="0.00" step="0.01" value="{{ old('allocated_budget', 0) }}" required />
+                                <p class="text-sm text-gray-600 mt-1">Enter the total budget allocated to this activity</p>
+                                <x-input-error :messages="$errors->get('allocated_budget')" class="mt-2" />
+                            </div>
+
                             <div class="md:col-span-2">
                                 <x-input-label for="status" :value="__('Status')" />
                                 <select id="status" name="status" required

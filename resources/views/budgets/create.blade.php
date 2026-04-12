@@ -21,6 +21,30 @@
         <form action="{{ route('programs.budgets.store', $program) }}" method="POST" enctype="multipart/form-data" class="p-6">
             @csrf
 
+            <!-- Activity Selection -->
+            <div class="mb-6">
+                <label for="activity_id" class="block text-sm font-medium text-gray-900 mb-2">
+                    Activity <span class="text-red-600">*</span>
+                </label>
+                <select 
+                    name="activity_id" 
+                    id="activity_id"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lnu-blue focus:border-transparent"
+                >
+                    <option value="">-- Select an Activity --</option>
+                    @forelse($activities as $activity)
+                        <option value="{{ $activity->id }}" @if(old('activity_id') == $activity->id) selected @endif>
+                            {{ $activity->title }} (₱{{ number_format($activity->allocated_budget, 0) }} budget)
+                        </option>
+                    @empty
+                        <option value="" disabled>No activities available for this program</option>
+                    @endforelse
+                </select>
+                <p class="text-xs text-gray-600 mt-1">Choose which activity this expense belongs to</p>
+                @error('activity_id')<span class="text-red-600 text-sm mt-1 block">{{ $message }}</span>@enderror
+            </div>
+
             <!-- Date Spent -->
             <div class="mb-6">
                 <label for="date_spent" class="block text-sm font-medium text-gray-900 mb-2">Date Spent</label>

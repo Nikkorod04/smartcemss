@@ -56,7 +56,9 @@ class BudgetController extends Controller
             abort(403, 'Unauthorized');
         }
 
-        return view('budgets.create', compact('program'));
+        $activities = $program->activities()->get();
+
+        return view('budgets.create', compact('program', 'activities'));
     }
 
     /**
@@ -69,6 +71,7 @@ class BudgetController extends Controller
         }
 
         $validated = $request->validate([
+            'activity_id' => 'required|exists:activities,id',
             'date_spent' => 'required|date|before_or_equal:today',
             'amount' => 'required|numeric|min:0.01',
             'description' => 'required|string|max:500',
@@ -85,6 +88,7 @@ class BudgetController extends Controller
         // Create budget transaction
         $budgetUtilization = BudgetUtilization::create([
             'extension_program_id' => $program->id,
+            'activity_id' => $validated['activity_id'],
             'date_spent' => $validated['date_spent'],
             'amount' => $validated['amount'],
             'description' => $validated['description'],

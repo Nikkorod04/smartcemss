@@ -11,6 +11,7 @@ class BudgetUtilization extends Model
 
     protected $fillable = [
         'extension_program_id',
+        'activity_id',
         'date_spent',
         'amount',
         'description',
@@ -37,5 +38,10 @@ class BudgetUtilization extends Model
     public function extensionProgram(): BelongsTo
     {
         return $this->belongsTo(ExtensionProgram::class);
+    }
+
+    public function activity(): BelongsTo
+    {
+        return $this->belongsTo(Activity::class);
     }
 }

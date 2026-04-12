@@ -50,6 +50,80 @@
                         </div>
                     </div>
 
+                    <!-- Budget Tracking -->
+                    <div class="bg-white rounded-lg shadow-md p-6 @if($activity->isBudgetNearLimit()) border-l-4 border-orange-500 @endif">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M8.16 5.314l4.897-1.596A1 1 0 0114.791 5v9.268a1 1 0 01-.894 1.053l-4.897 1.596A1 1 0 018 15.268V6.367a1 1 0 01.16-.053zm-4.3 5.886l4.897 1.596A1 1 0 008 13.268V4.367A1 1 0 006.791 3.314L1.894 4.91A1 1 0 001 5.963V15.23a1 1 0 01.894 1.053Zm3.353-2.01l2-1.324A1 1 0 1013.55 4.62L11.55 5.944a1 1 0 01-1.197-1.596Z" />
+                            </svg>
+                            Budget Tracking
+                            @if($activity->isBudgetNearLimit())
+                                <span class="ml-auto inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                    Budget near limit!
+                                </span>
+                            @endif
+                        </h2>
+                        
+                        <div class="space-y-4">
+                            <!-- Budget Summary Cards -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                                    <p class="text-sm text-gray-700 font-medium">Allocated Budget</p>
+                                    <p class="text-2xl font-bold text-blue-600 mt-1">₱{{ number_format($activity->allocated_budget, 2) }}</p>
+                                </div>
+                                <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
+                                    <p class="text-sm text-gray-700 font-medium">Total Spent</p>
+                                    <p class="text-2xl font-bold text-red-600 mt-1">₱{{ number_format($activity->total_spent, 2) }}</p>
+                                </div>
+                                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                                    <p class="text-sm text-gray-700 font-medium">Remaining</p>
+                                    <p class="text-2xl font-bold text-green-600 mt-1">₱{{ number_format($activity->remaining_budget, 2) }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Budget Progress Bar -->
+                            <div>
+                                <div class="flex justify-between mb-2">
+                                    <span class="text-sm font-medium text-gray-700">Budget Utilization</span>
+                                    <span class="text-sm font-bold @if($activity->isBudgetNearLimit()) text-orange-600 @else text-gray-600 @endif">
+                                        {{ number_format($activity->spent_percentage, 1) }}%
+                                    </span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-3">
+                                    <div class="h-3 rounded-full @if($activity->isBudgetNearLimit()) bg-orange-500 @elseif($activity->spent_percentage > 50) bg-blue-500 @else bg-green-500 @endif transition-all duration-300"
+                                         style="width: {{ min($activity->spent_percentage, 100) }}%">
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if($activity->budgetUtilizations->count() > 0)
+                                <!-- Recent Expenses -->
+                                <div class="mt-6 pt-6 border-t">
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Recent Expenses</h3>
+                                    <div class="space-y-3 max-h-64 overflow-y-auto">
+                                        @foreach($activity->budgetUtilizations->take(5) as $utilization)
+                                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                                <div class="flex-1">
+                                                    <p class="text-sm font-medium text-gray-900">{{ $utilization->description }}</p>
+                                                    <p class="text-xs text-gray-600">{{ $utilization->date_spent?->format('M d, Y') }}</p>
+                                                </div>
+                                                <p class="text-sm font-bold text-gray-900">₱{{ number_format($utilization->amount, 2) }}</p>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    @if($activity->budgetUtilizations->count() > 5)
+                                        <p class="text-xs text-gray-600 mt-2 text-center">
+                                            + {{ $activity->budgetUtilizations->count() - 5 }} more expense(s)
+                                        </p>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
                     <!-- Timeline -->
                     <div class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
