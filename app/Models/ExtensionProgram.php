@@ -104,3 +104,37 @@ class ExtensionProgram extends Model
         }
         return $value ?? [];
     }
+
+    /**
+     * Decode beneficiary_categories JSON if stored as string
+     */
+    public function getBeneficiaryCategoriesAttribute($value)
+    {
+        if (is_string($value)) {
+            return json_decode($value, true) ?? [];
+        }
+        return $value ?? [];
+    }
+
+    /**
+     * Decode gallery_images JSON if stored as string
+     */
+    public function getGalleryImagesAttribute($value)
+    {
+        if (is_string($value)) {
+            return json_decode($value, true) ?? [];
+        }
+        return $value ?? [];
+    }
+
+    /**
+     * Decode attachments JSON if stored as string
+     */
+    public function getAttachmentsAttribute($value)
+    {
+        if (is_string($value)) {
+            return json_decode($value, true) ?? [];
+        }
+        return $value ?? [];
+    }
+}
