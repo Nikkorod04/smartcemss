@@ -59,6 +59,39 @@
                 </div>
             </div>
 
+            <!-- Link to Activity Section -->
+            <div class="space-y-4 pt-6 border-t">
+                <h4 class="text-lg font-semibold text-gray-800">Link to Activity <span class="text-gray-500 font-normal text-sm">(Optional)</span></h4>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Activity</label>
+                    <select wire:model.live="activity_id" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-amber-500 focus:outline-none transition bg-white">
+                        <option value="">-- No Activity --</option>
+                        @foreach($activities as $activity)
+                            <option value="{{ $activity['id'] }}">{{ $activity['title'] }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                @if($activity_id && $this->getSelectedActivityRemainingBudget() !== null)
+                    @php
+                        $remainingBudget = $this->getSelectedActivityRemainingBudget();
+                        $isLow = $remainingBudget < $amount;
+                    @endphp
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p class="text-sm text-gray-700 mb-2"><strong>Activity Budget Remaining:</strong></p>
+                        <div class="flex items-baseline justify-between">
+                            <p class="text-2xl font-bold {{ $isLow ? 'text-red-600' : 'text-blue-600' }}">
+                                ₱{{ number_format($remainingBudget, 2) }}
+                            </p>
+                            @if($isLow)
+                                <span class="text-xs font-semibold text-red-600 bg-red-100 px-3 py-1 rounded-full">Warning: Over budget</span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </div>
+
             <!-- Budget Source Section -->
             <div class="space-y-4 pt-6 border-t">
                 <h4 class="text-lg font-semibold text-gray-800">Budget Source</h4>

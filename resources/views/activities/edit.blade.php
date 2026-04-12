@@ -86,6 +86,51 @@
                                 <x-input-error :messages="$errors->get('allocated_budget')" class="mt-2" />
                             </div>
 
+                            <!-- M&E Assessment Section -->
+                            <div class="pt-4 border-t-2 border-blue-100">
+                                <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000-2H6a6 6 0 016 6v3.5a4.5 4.5 0 11-9 0V5a1 1 0 00-1 1v5a7 7 0 1014 0v-5a1 1 0 10-2 0v5a5 5 0 11-10 0V5z" clip-rule="evenodd" />
+                                    </svg>
+                                    M&E Assessment & Satisfaction
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <x-input-label for="pre_assessment_score" :value="__('Pre-Assessment Score (0-100)')" />
+                                        <x-text-input id="pre_assessment_score" class="block w-full mt-1" type="number" 
+                                                    name="pre_assessment_score" placeholder="0" min="0" max="100" 
+                                                    value="{{ old('pre_assessment_score', $activity->pre_assessment_score) }}" />
+                                        <p class="text-xs text-gray-500 mt-1">Knowledge score before training</p>
+                                        <x-input-error :messages="$errors->get('pre_assessment_score')" class="mt-2" />
+                                    </div>
+
+                                    <div>
+                                        <x-input-label for="post_assessment_score" :value="__('Post-Assessment Score (0-100)')" />
+                                        <x-text-input id="post_assessment_score" class="block w-full mt-1" type="number" 
+                                                    name="post_assessment_score" placeholder="0" min="0" max="100" 
+                                                    value="{{ old('post_assessment_score', $activity->post_assessment_score) }}" />
+                                        <p class="text-xs text-gray-500 mt-1">Knowledge score after training</p>
+                                        <x-input-error :messages="$errors->get('post_assessment_score')" class="mt-2" />
+                                    </div>
+
+                                    <div>
+                                        <x-input-label for="satisfaction_rating" :value="__('Satisfaction Rating (1-5)')" />
+                                        <select id="satisfaction_rating" name="satisfaction_rating"
+                                               class="w-full mt-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                            <option value="">-- Not Rated --</option>
+                                            <option value="1" @if(old('satisfaction_rating', $activity->satisfaction_rating) == 1) selected @endif>1 ⭐ Poor</option>
+                                            <option value="2" @if(old('satisfaction_rating', $activity->satisfaction_rating) == 2) selected @endif>2 ⭐⭐ Fair</option>
+                                            <option value="3" @if(old('satisfaction_rating', $activity->satisfaction_rating) == 3) selected @endif>3 ⭐⭐⭐ Good</option>
+                                            <option value="4" @if(old('satisfaction_rating', $activity->satisfaction_rating) == 4) selected @endif>4 ⭐⭐⭐⭐ Very Good</option>
+                                            <option value="5" @if(old('satisfaction_rating', $activity->satisfaction_rating) == 5) selected @endif>5 ⭐⭐⭐⭐⭐ Excellent</option>
+                                        </select>
+                                        <p class="text-xs text-gray-500 mt-1">Participant satisfaction</p>
+                                        <x-input-error :messages="$errors->get('satisfaction_rating')" class="mt-2" />
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="md:col-span-2">
                                 <x-input-label for="status" :value="__('Status')" />
                                 <select id="status" name="status" required

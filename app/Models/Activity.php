@@ -22,6 +22,9 @@ class Activity extends Model
         'status',
         'notes',
         'allocated_budget',
+        'pre_assessment_score',
+        'post_assessment_score',
+        'satisfaction_rating',
     ];
 
     protected $casts = [
@@ -80,5 +83,43 @@ class Activity extends Model
     public function isBudgetNearLimit(): bool
     {
         return $this->spent_percentage >= 85;
+    }
+
+    /**
+     * Get knowledge gain (post - pre assessment)
+     */
+    public function getKnowledgeGainAttribute(): ?int
+    {
+        if ($this->pre_assessment_score === null || $this->post_assessment_score === null) {
+            return null;
+        }
+        return $this->post_assessment_score - $this->pre_assessment_score;
+    }
+
+    /**
+     * Get knowledge gain percentage
+     */
+    public function getKnowledgeGainPercentageAttribute(): ?float
+    {
+        if ($this->pre_assessment_score === null || $this->pre_assessment_score == 0) {
+            return null;
+        }
+        return round(($this->knowledge_gain / $this->pre_assessment_score) * 100, 2);
+    }
+
+    /**
+     * Check if activity has assessment data
+     */
+    public function hasAssessmentData(): bool
+    {
+        return $this->pre_assessment_score !== null && $this->post_assessment_score !== null;
+    }
+
+    /**
+     * Check if activity has satisfaction data
+     */
+    public function hasSatisfactionData(): bool
+    {
+        return $this->satisfaction_rating !== null;
     }
 }

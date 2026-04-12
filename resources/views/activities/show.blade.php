@@ -1,23 +1,17 @@
 <x-admin-layout header="Activity Details">
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
+    <div class="min-h-screen bg-white py-8">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Header Section -->
-            <div class="flex justify-between items-start mb-8">
-                <div>
-                    <h1 class="text-4xl font-bold text-gray-900">{{ $activity->title }}</h1>
-                    <p class="text-gray-600 mt-2">{{ $activity->extensionProgram->title }}</p>
-                </div>
-                <div class="flex gap-2">
-                    <a href="{{ route('activities.edit', $activity) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <div class="mb-8">
+                <div class="flex items-center gap-3 mb-2">
+                    <a href="{{ route('programs.show', $activity->extensionProgram) }}" class="inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition text-gray-600 hover:text-gray-900">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
-                        Edit
                     </a>
-                    <a href="{{ route('activities.index') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium rounded-lg transition">
-                        Back
-                    </a>
+                    <p class="text-gray-600">{{ $activity->extensionProgram->title }}</p>
                 </div>
+                <h1 class="text-4xl font-bold text-gray-900">{{ $activity->title }}</h1>
             </div>
 
             <!-- Status Badge -->
@@ -400,4 +394,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Edit Button FAB -->
+    <a href="{{ route('activities.edit', $activity) }}" class="fixed bottom-8 right-8 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition transform hover:scale-110">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+    </a>
 </x-admin-layout>

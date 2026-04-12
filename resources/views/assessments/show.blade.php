@@ -26,35 +26,43 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <p class="text-sm font-medium text-gray-600">Respondent Name</p>
-                        <p class="text-gray-900 mt-1">
-                            {{ $assessment->respondent_first_name ?? '-' }}
-                            @if($assessment->respondent_middle_name) {{ $assessment->respondent_middle_name }} @endif
-                            {{ $assessment->respondent_last_name ?? '-' }}
-                        </p>
+                        <div class="mt-1">
+                            @php
+                                $fullName = trim(($assessment->respondent_first_name ?? '') . ' ' . ($assessment->respondent_middle_name ?? '') . ' ' . ($assessment->respondent_last_name ?? ''));
+                                $fullName = $fullName ?: '-';
+                            @endphp
+                            <x-badge :value="$fullName" />
+                        </div>
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-600">Age</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->respondent_age ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->respondent_age" />
+                        </div>
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-600">Sex</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->respondent_sex ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->respondent_sex" />
+                        </div>
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-600">Civil Status</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->respondent_civil_status ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->respondent_civil_status" />
+                        </div>
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-600">Religion</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->respondent_religion ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->respondent_religion" />
+                        </div>
                     </div>
                     @if($assessment->respondent_educational_attainment)
                     <div>
                         <p class="text-sm font-medium text-gray-600">Educational Attainment</p>
                         <div class="mt-1 flex flex-wrap gap-2">
-                            @foreach((array) $assessment->respondent_educational_attainment as $edu)
-                                <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">{{ $edu }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->respondent_educational_attainment" />
                         </div>
                     </div>
                     @endif
@@ -94,25 +102,19 @@
                     @if($assessment->livelihood_options)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Livelihood Options</p>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->livelihood_options as $option)
-                                <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">{{ $option }}</span>
-                            @endforeach
-                        </div>
+                        <x-inline-list :items="$assessment->livelihood_options" />
                     </div>
                     @endif
                     <div>
                         <p class="text-sm font-medium text-gray-600">Interested in Livelihood Training?</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->interested_in_livelihood_training ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->interested_in_livelihood_training" />
+                        </div>
                     </div>
                     @if($assessment->desired_training)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Desired Training</p>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->desired_training as $training)
-                                <span class="bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full">{{ $training }}</span>
-                            @endforeach
-                        </div>
+                        <x-inline-list :items="$assessment->desired_training" />
                     </div>
                     @endif
                 </div>
@@ -130,42 +132,38 @@
                     @if($assessment->barangay_educational_facilities)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Barangay Educational Facilities</p>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->barangay_educational_facilities as $facility)
-                                <span class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full">{{ $facility }}</span>
-                            @endforeach
-                        </div>
+                        <x-inline-list :items="$assessment->barangay_educational_facilities" />
                     </div>
                     @endif
                     <div>
                         <p class="text-sm font-medium text-gray-600">Household Member Currently Studying?</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->household_member_currently_studying ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->household_member_currently_studying" />
+                        </div>
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-600">Interested in Continuing Studies?</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->interested_in_continuing_studies ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->interested_in_continuing_studies" />
+                        </div>
                     </div>
                     @if($assessment->areas_of_educational_interest)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Educational Interest Areas</p>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->areas_of_educational_interest as $area)
-                                <span class="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full">{{ $area }}</span>
-                            @endforeach
-                        </div>
+                        <x-inline-list :items="$assessment->areas_of_educational_interest" />
                     </div>
                     @endif
                     <div>
                         <p class="text-sm font-medium text-gray-600">Preferred Training Time</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->preferred_training_time ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->preferred_training_time" />
+                        </div>
                     </div>
                     @if($assessment->preferred_training_days)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Preferred Training Days</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->preferred_training_days as $day)
-                                <span class="bg-cyan-100 text-cyan-800 text-xs px-3 py-1 rounded-full">{{ $day }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->preferred_training_days" />
                         </div>
                     </div>
                     @endif
@@ -184,9 +182,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Common Illnesses</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->common_illnesses as $illness)
-                                <span class="bg-red-100 text-red-800 text-xs px-3 py-1 rounded-full">{{ $illness }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->common_illnesses" />
                         </div>
                     </div>
                     @endif
@@ -194,83 +190,75 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Action When Sick</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->action_when_sick as $action)
-                                <span class="bg-red-100 text-red-800 text-xs px-3 py-1 rounded-full">{{ $action }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->action_when_sick" />
                         </div>
                     </div>
                     @endif
                     @if($assessment->barangay_medical_supplies_available)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Medical Supplies Available</p>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->barangay_medical_supplies_available as $supply)
-                                <span class="bg-pink-100 text-pink-800 text-xs px-3 py-1 rounded-full">{{ $supply }}</span>
-                            @endforeach
-                        </div>
+                        <x-inline-list :items="$assessment->barangay_medical_supplies_available" />
                     </div>
                     @endif
                     @if($assessment->programs_benefited_from)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Programs Benefited From</p>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->programs_benefited_from as $program)
-                                <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">{{ $program }}</span>
-                            @endforeach
-                        </div>
+                        <x-inline-list :items="$assessment->programs_benefited_from" />
                     </div>
                     @endif
                     <div class="grid grid-cols-2">
                         <div>
                             <p class="text-sm font-medium text-gray-600">Health Programs Available?</p>
-                            <p class="text-gray-900 mt-1">{{ $assessment->has_barangay_health_programs ?? '-' }}</p>
+                            <div class="mt-1">
+                                <x-badge :value="$assessment->has_barangay_health_programs" />
+                            </div>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-600">Benefits from Programs?</p>
-                            <p class="text-gray-900 mt-1">{{ $assessment->benefits_from_barangay_programs ?? '-' }}</p>
+                            <div class="mt-1">
+                                <x-badge :value="$assessment->benefits_from_barangay_programs" />
+                            </div>
                         </div>
                     </div>
                     @if($assessment->water_source)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Water Source</p>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->water_source as $source)
-                                <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">{{ $source }}</span>
-                            @endforeach
-                        </div>
+                        <x-inline-list :items="$assessment->water_source" />
                     </div>
                     @endif
                     <div>
                         <p class="text-sm font-medium text-gray-600">Water Source Distance</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->water_source_distance ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->water_source_distance" />
+                        </div>
                     </div>
                     @if($assessment->garbage_disposal_method)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Garbage Disposal Method</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->garbage_disposal_method as $method)
-                                <span class="bg-amber-100 text-amber-800 text-xs px-3 py-1 rounded-full">{{ $method }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->garbage_disposal_method" />
                         </div>
                     </div>
                     @endif
                     <div class="grid grid-cols-2">
                         <div>
                             <p class="text-sm font-medium text-gray-600">Has Own Toilet?</p>
-                            <p class="text-gray-900 mt-1">{{ $assessment->has_own_toilet ?? '-' }}</p>
+                            <div class="mt-1">
+                                <x-badge :value="$assessment->has_own_toilet" />
+                            </div>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-600">Keeps Animals?</p>
-                            <p class="text-gray-900 mt-1">{{ $assessment->keeps_animals ?? '-' }}</p>
+                            <div class="mt-1">
+                                <x-badge :value="$assessment->keeps_animals" />
+                            </div>
                         </div>
                     </div>
                     @if($assessment->toilet_type)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Toilet Type</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->toilet_type as $type)
-                                <span class="bg-slate-100 text-slate-800 text-xs px-3 py-1 rounded-full">{{ $type }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->toilet_type" />
                         </div>
                     </div>
                     @endif
@@ -278,9 +266,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Animals Kept</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->animals_kept as $animal)
-                                <span class="bg-orange-100 text-orange-800 text-xs px-3 py-1 rounded-full">{{ $animal }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->animals_kept" />
                         </div>
                     </div>
                     @endif
@@ -299,9 +285,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">House Type</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->house_type as $type)
-                                <span class="bg-fuchsia-100 text-fuchsia-800 text-xs px-3 py-1 rounded-full">{{ $type }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->house_type" />
                         </div>
                     </div>
                     @endif
@@ -309,23 +293,21 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Tenure Status</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->tenure_status as $status)
-                                <span class="bg-violet-100 text-violet-800 text-xs px-3 py-1 rounded-full">{{ $status }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->tenure_status" />
                         </div>
                     </div>
                     @endif
                     <div>
                         <p class="text-sm font-medium text-gray-600">Has Electricity?</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->has_electricity ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->has_electricity" />
+                        </div>
                     </div>
                     @if($assessment->light_source_without_power)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Light Source Without Power</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->light_source_without_power as $source)
-                                <span class="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full">{{ $source }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->light_source_without_power" />
                         </div>
                     </div>
                     @endif
@@ -333,9 +315,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Appliances Owned</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->appliances_owned as $appliance)
-                                <span class="bg-teal-100 text-teal-800 text-xs px-3 py-1 rounded-full">{{ $appliance }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->appliances_owned" />
                         </div>
                     </div>
                     @endif
@@ -355,9 +335,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Recreational Facilities</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->barangay_recreational_facilities as $facility)
-                                <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">{{ $facility }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->barangay_recreational_facilities" />
                         </div>
                     </div>
                     @endif
@@ -365,34 +343,36 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Use of Free Time</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->use_of_free_time as $use)
-                                <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">{{ $use }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->use_of_free_time" />
                         </div>
                     </div>
                     @endif
                     <div>
                         <p class="text-sm font-medium text-gray-600">Member of Organization?</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->member_of_organization ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->member_of_organization" />
+                        </div>
                     </div>
                     @if($assessment->organization_types)
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Organization Types</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->organization_types as $org)
-                                <span class="bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full">{{ $org }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->organization_types" />
                         </div>
                     </div>
                     @endif
                     <div>
                         <p class="text-sm font-medium text-gray-600">Meeting Frequency</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->organization_meeting_frequency ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->organization_meeting_frequency" />
+                        </div>
                     </div>
                     @if($assessment->position_in_organization)
                     <div>
                         <p class="text-sm font-medium text-gray-600">Position</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->position_in_organization }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->position_in_organization" />
+                        </div>
                     </div>
                     @endif
                     @if($assessment->organization_usual_activities)
@@ -405,9 +385,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Members Involved</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->household_members_in_organization as $member)
-                                <span class="bg-pink-100 text-pink-800 text-xs px-3 py-1 rounded-full">{{ $member }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->household_members_in_organization" />
                         </div>
                     </div>
                     @endif
@@ -426,9 +404,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Family Problems</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->family_problems as $problem)
-                                <span class="bg-red-100 text-red-800 text-xs px-3 py-1 rounded-full">{{ $problem }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->family_problems" />
                         </div>
                     </div>
                     @endif
@@ -436,9 +412,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Health Problems</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->health_problems as $problem)
-                                <span class="bg-orange-100 text-orange-800 text-xs px-3 py-1 rounded-full">{{ $problem }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->health_problems" />
                         </div>
                     </div>
                     @endif
@@ -446,9 +420,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Educational Problems</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->educational_problems as $problem)
-                                <span class="bg-yellow-100 text-yellow-800 text-xs px-3 py-1 rounded-full">{{ $problem }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->educational_problems" />
                         </div>
                     </div>
                     @endif
@@ -456,9 +428,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Employment Problems</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->employment_problems as $problem)
-                                <span class="bg-green-100 text-green-800 text-xs px-3 py-1 rounded-full">{{ $problem }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->employment_problems" />
                         </div>
                     </div>
                     @endif
@@ -466,9 +436,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Infrastructure Problems</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->infrastructure_problems as $problem)
-                                <span class="bg-blue-100 text-blue-800 text-xs px-3 py-1 rounded-full">{{ $problem }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->infrastructure_problems" />
                         </div>
                     </div>
                     @endif
@@ -476,9 +444,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Economic Problems</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->economic_problems as $problem)
-                                <span class="bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full">{{ $problem }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->economic_problems" />
                         </div>
                     </div>
                     @endif
@@ -486,9 +452,7 @@
                     <div>
                         <p class="text-sm font-medium text-gray-600 mb-2">Security Problems</p>
                         <div class="flex flex-wrap gap-2">
-                            @foreach((array) $assessment->security_problems as $problem)
-                                <span class="bg-indigo-100 text-indigo-800 text-xs px-3 py-1 rounded-full">{{ $problem }}</span>
-                            @endforeach
+                            <x-inline-list :items="$assessment->security_problems" />
                         </div>
                     </div>
                     @endif
@@ -534,7 +498,9 @@
                     @endif
                     <div>
                         <p class="text-sm font-medium text-gray-600">Available for Training?</p>
-                        <p class="text-gray-900 mt-1">{{ $assessment->available_for_training ?? '-' }}</p>
+                        <div class="mt-1">
+                            <x-badge :value="$assessment->available_for_training" />
+                        </div>
                     </div>
                     @if($assessment->reason_not_available)
                     <div>
@@ -583,3 +549,4 @@
         </div>
     </div>
 </x-admin-layout>
+

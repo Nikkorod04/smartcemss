@@ -29,6 +29,16 @@ class Community extends Model
         return $this->hasMany(NeedsAssessment::class);
     }
 
+    public function assessmentSummary()
+    {
+        return $this->hasOne(AssessmentSummary::class);
+    }
+
+    public function assessmentSummaries()
+    {
+        return $this->hasMany(AssessmentSummary::class);
+    }
+
     public function extensionPrograms(): BelongsToMany
     {
         return $this->belongsToMany(ExtensionProgram::class, 'community_extension_program');

@@ -34,11 +34,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/programs-search', [ProgramController::class, 'search'])->name('programs.search');
     Route::get('/programs-filter/{status}', [ProgramController::class, 'filterByStatus'])->name('programs.filter');
     Route::get('/programs/{program}/budget-breakdown', [ProgramController::class, 'budgetBreakdownReport'])->name('programs.budget-breakdown');
+    Route::get('/programs/{program}/metrics', function (\App\Models\ExtensionProgram $program) {
+        return view('programs.metrics', ['program' => $program]);
+    })->name('programs.metrics');
 
     // Community routes
     Route::resource('communities', CommunityController::class);
     Route::get('/communities-search', [CommunityController::class, 'search'])->name('communities.search');
     Route::get('/communities-filter/{status}', [CommunityController::class, 'filterByStatus'])->name('communities.filter');
+    Route::get('/communities/{community}/assessment-summary', [\App\Http\Controllers\AssessmentSummaryController::class, 'show'])->name('communities.assessment-summary');
 
     // Beneficiary routes
     Route::resource('beneficiaries', BeneficiaryController::class);
@@ -56,6 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('assessments', NeedsAssessmentController::class);
     Route::get('/assessments-search', [NeedsAssessmentController::class, 'search'])->name('assessments.search');
     Route::get('/assessments-filter/{quarter}', [NeedsAssessmentController::class, 'filterByQuarter'])->name('assessments.filter');
+    Route::get('/assessments-dashboard', [\App\Http\Controllers\AssessmentDashboardController::class, 'index'])->name('assessments.dashboard');
 
     // Assessment template downloads
     Route::get('/assessment-template/csv', [AssessmentTemplateController::class, 'downloadCsvTemplate'])->name('assessment.template.csv');

@@ -3,12 +3,14 @@
 namespace App\Livewire;
 
 use App\Models\BudgetUtilization;
+use App\Models\ExtensionProgram;
 use Livewire\Component;
 
 class EditExpenseModal extends Component
 {
     public $expenseId;
     public $expense;
+    public $activities = [];
     
     public $date_spent;
     public $amount;
@@ -17,6 +19,7 @@ class EditExpenseModal extends Component
     public $budget_source;
     public $source_description;
     public $approval_status;
+    public $activity_id;
     public $people_involved = [];
     public $offices_involved = [];
     
@@ -45,9 +48,31 @@ class EditExpenseModal extends Component
             $this->budget_source = $this->expense->budget_source;
             $this->source_description = $this->expense->source_description;
             $this->approval_status = $this->expense->approval_status;
+            $this->activity_id = $this->expense->activity_id;
             $this->people_involved = $this->expense->people_involved ?? [];
             $this->offices_involved = $this->expense->offices_involved ?? [];
+            
+            // Load activities for the program
+            $program = $this->expense->extensionProgram;
+            if ($program) {
+                $this->activities = $program->activities()->get()->toArray();
+            }
         }
+    }
+
+    public function getSelectedActivityRemainingBudget()
+    {
+        if (!$this->activity_id || !$this->expense) {
+            return null;
+        }
+        
+        $activity = $this->expense->extensionProgram->activities()->find($this->activity_id);
+        if ($activity) {
+            // Calculate remaining budget excluding the current expense amount
+            $currentExpenseAmount = $this->expense->activity_id == $this->activity_id ? $this->expense->amount : 0;
+            return $activity->remaining_budget + $currentExpenseAmount;
+        }
+        return null;
     }
 
     public function addPerson()
@@ -107,6 +132,7 @@ class EditExpenseModal extends Component
                 'transaction_type' => $this->transaction_type,
                 'budget_source' => $this->budget_source,
                 'source_description' => $this->source_description,
+                'activity_id' => $this->activity_id ?: null,
                 'people_involved' => count($this->people_involved) > 0 ? $this->people_involved : null,
                 'offices_involved' => count($this->offices_involved) > 0 ? $this->offices_involved : null,
                 'approval_status' => $this->approval_status,

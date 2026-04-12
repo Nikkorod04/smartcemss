@@ -11,6 +11,8 @@ class AddExpenseModal extends Component
 {
     public $programId;
     public $program;
+    public $activities = [];
+    public $activity_id = null;
     
     public $date_spent = '';
     public $amount = '';
@@ -44,7 +46,28 @@ class AddExpenseModal extends Component
     {
         $this->programId = $programId;
         $this->program = ExtensionProgram::find($programId);
+        $this->loadActivities();
         $this->date_spent = now()->format('Y-m-d');
+    }
+
+    public function loadActivities()
+    {
+        if ($this->program) {
+            $this->activities = $this->program->activities()->get()->toArray();
+        }
+    }
+
+    public function getSelectedActivityRemainingBudget()
+    {
+        if (!$this->activity_id) {
+            return null;
+        }
+        
+        $activity = $this->program->activities()->find($this->activity_id);
+        if ($activity) {
+            return $activity->remaining_budget;
+        }
+        return null;
     }
 
     public function addPerson()
@@ -99,6 +122,7 @@ class AddExpenseModal extends Component
         try {
             BudgetUtilization::create([
                 'extension_program_id' => $this->programId,
+                'activity_id' => $this->activity_id ?: null,
                 'date_spent' => $this->date_spent,
                 'amount' => $this->amount,
                 'description' => $this->description,
@@ -137,7 +161,7 @@ class AddExpenseModal extends Component
     public function resetForm()
     {
         $this->reset(['date_spent', 'amount', 'description', 'transaction_type', 'budget_source', 
-                     'source_description', 'approval_status', 'people_involved', 'offices_involved']);
+                     'source_description', 'approval_status', 'people_involved', 'offices_involved', 'activity_id']);
         $this->date_spent = now()->format('Y-m-d');
     }
 

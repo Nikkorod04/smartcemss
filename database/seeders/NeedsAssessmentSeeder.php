@@ -15,318 +15,219 @@ class NeedsAssessmentSeeder extends Seeder
     public function run(): void
     {
         $secretary = User::where('role', 'secretary')->first();
-        $communities = Community::take(3)->get();
+        $anibong = Community::firstOrCreate(['name' => 'Anibong']);
 
-        if ($communities->count() < 1) {
-            return; // Skip if no communities
+        if (!$anibong) {
+            return; // Skip if Anibong community doesn't exist
         }
 
-        $assessments = [
-            [
-                'community_id' => $communities[0]->id ?? 1,
-                'quarter' => 'Q1',
-                'year' => 2024,
-                'respondent_first_name' => 'Maria',
-                'respondent_middle_name' => 'Cruz',
-                'respondent_last_name' => 'Santos',
-                'respondent_age' => 45,
-                'respondent_civil_status' => 'Married',
-                'respondent_sex' => 'Female',
-                'respondent_religion' => 'Catholic',
-                'respondent_educational_attainment' => json_encode(['High School']),
-                'family_composition' => json_encode(['5 members: 2 adults, 3 children']),
-                'barangay_educational_facilities' => json_encode(['Elementary Primary', 'Secondary']),
-                'livelihood_options' => json_encode(['Farming', 'Raising animals']),
-                'interested_in_livelihood_training' => 'Yes',
-                'areas_of_educational_interest' => json_encode(['Math', 'English']),
-                'preferred_training_time' => 'Morning 8-12',
-                'preferred_training_days' => json_encode(['Wednesday', 'Saturday']),
-                'desired_training' => json_encode(['Vegetable Farming', 'Animal Husbandry']),
-                'common_illnesses' => json_encode(['Colds', 'Headache']),
-                'action_when_sick' => json_encode(['Hospital/Health Center', 'Herbal Medicine']),
-                'barangay_medical_supplies_available' => json_encode(['Health Center', 'Ambulance']),
-                'has_barangay_health_programs' => 'Yes',
-                'benefits_from_barangay_programs' => 'Yes',
-                'programs_benefited_from' => json_encode(['Free Vaccine', 'Free Consultation']),
-                'water_source' => json_encode(['NAWASA', 'Deep Well']),
-                'water_source_distance' => 'Just outside',
-                'garbage_disposal_method' => json_encode(['Compost pit']),
-                'household_member_currently_studying' => 'No',
-                'interested_in_continuing_studies' => 'No',
-                'has_own_toilet' => 'Yes',
-                'toilet_type' => json_encode(['Flush toilet']),
-                'keeps_animals' => 'Yes',
-                'animals_kept' => json_encode(['Chicken', 'Duck']),
-                'house_type' => json_encode(['Half concrete/wood']),
-                'tenure_status' => json_encode(['Own house/land']),
-                'has_electricity' => 'Yes',
-                'light_source_without_power' => json_encode(['Solar lamp']),
-                'appliances_owned' => json_encode(['TV', 'Refrigerator', 'Electric Fan']),
-                'barangay_recreational_facilities' => json_encode(['Basketball Court', 'Volleyball Court']),
-                'use_of_free_time' => json_encode(['Playing basketball', 'Watching TV']),
-                'member_of_organization' => 'Yes',
-                'organization_types' => json_encode(['Civic', 'Religious']),
-                'organization_meeting_frequency' => 'Monthly',
-                'organization_usual_activities' => 'Community cleanup, religious gatherings',
-                'household_members_in_organization' => json_encode(['Self', 'Spouse']),
-                'position_in_organization' => 'Treasurer',
-                'family_problems' => json_encode(['Low income']),
-                'health_problems' => json_encode(['Malnourished']),
-                'educational_problems' => json_encode(['Far school']),
-                'employment_problems' => json_encode(['Lack of employment']),
-                'infrastructure_problems' => json_encode(['Difficult roads']),
-                'economic_problems' => json_encode(['Lack of buyers', 'No capital']),
-                'security_problems' => json_encode(['No police assigned']),
-                'barangay_service_ratings' => json_encode(['Law Enforcement' => 3, 'Fire Protection' => 2, 'Health Service' => 4, 'Education Service' => 3]),
-                'general_feedback' => 'Community needs livelihood training and infrastructure development.',
-                'available_for_training' => 'Yes',
-                'uploaded_by' => $secretary?->id ?? 1,
-            ],
-            [
-                'community_id' => $communities[0]->id ?? 1,
-                'quarter' => 'Q2',
-                'year' => 2024,
-                'respondent_first_name' => 'Juan',
-                'respondent_middle_name' => 'Reyes',
-                'respondent_last_name' => 'Dela Cruz',
-                'respondent_age' => 38,
-                'respondent_civil_status' => 'Single',
-                'respondent_sex' => 'Male',
-                'respondent_religion' => 'Catholic',
-                'respondent_educational_attainment' => json_encode(['College']),
-                'family_composition' => json_encode(['3 members: 1 adult, 2 siblings']),
-                'barangay_educational_facilities' => json_encode(['Secondary', 'College']),
-                'livelihood_options' => json_encode(['Service Work', 'Driving']),
-                'interested_in_livelihood_training' => 'Yes',
-                'areas_of_educational_interest' => json_encode(['Technology', 'Management']),
-                'preferred_training_time' => 'Afternoon 1:30-5',
-                'preferred_training_days' => json_encode(['Saturday', 'Sunday']),
-                'desired_training' => json_encode(['Computer', 'Electronics']),
-                'common_illnesses' => json_encode(['Stress', 'Hypertension']),
-                'action_when_sick' => json_encode(['Hospital/Health Center']),
-                'barangay_medical_supplies_available' => json_encode(['Health Center', 'Medical Equipment']),
-                'has_barangay_health_programs' => 'Yes',
-                'benefits_from_barangay_programs' => 'No',
-                'programs_benefited_from' => json_encode([]),
-                'water_source' => json_encode(['NAWASA']),
-                'water_source_distance' => 'Just outside',
-                'garbage_disposal_method' => json_encode(['Anywhere']),
-                'household_member_currently_studying' => 'No',
-                'interested_in_continuing_studies' => 'Yes',
-                'has_own_toilet' => 'Yes',
-                'toilet_type' => json_encode(['Flush toilet']),
-                'keeps_animals' => 'No',
-                'animals_kept' => json_encode([]),
-                'house_type' => json_encode(['All concrete']),
-                'tenure_status' => json_encode(['Own house/land']),
-                'has_electricity' => 'Yes',
-                'light_source_without_power' => json_encode([]),
-                'appliances_owned' => json_encode(['TV', 'Computer', 'Washing Machine', 'Electric Fan']),
-                'barangay_recreational_facilities' => json_encode(['Basketball Court']),
-                'use_of_free_time' => json_encode(['Playing basketball', 'Chatting']),
-                'member_of_organization' => 'Yes',
-                'organization_types' => json_encode(['Sports/Recreational']),
-                'organization_meeting_frequency' => 'Weekly',
-                'organization_usual_activities' => 'Basketball games, sports events',
-                'household_members_in_organization' => json_encode(['Self']),
-                'position_in_organization' => 'Member',
-                'family_problems' => json_encode([]),
-                'health_problems' => json_encode(['Stress']),
-                'educational_problems' => json_encode([]),
-                'employment_problems' => json_encode(['Low income']),
-                'infrastructure_problems' => json_encode([]),
-                'economic_problems' => json_encode([]),
-                'security_problems' => json_encode([]),
-                'barangay_service_ratings' => json_encode(['Law Enforcement' => 4, 'Fire Protection' => 4, 'Health Service' => 5]),
-                'general_feedback' => 'Seeking career advancement and professional development opportunities.',
-                'available_for_training' => 'Yes',
-                'uploaded_by' => $secretary?->id ?? 1,
-            ],
-            [
-                'community_id' => $communities[1]->id ?? 1,
-                'quarter' => 'Q3',
-                'year' => 2024,
-                'respondent_first_name' => 'Rosa',
-                'respondent_middle_name' => null,
-                'respondent_last_name' => 'Reyes',
-                'respondent_age' => 62,
-                'respondent_civil_status' => 'Widowed',
-                'respondent_sex' => 'Female',
-                'respondent_religion' => 'Catholic',
-                'respondent_educational_attainment' => json_encode(['Elementary']),
-                'family_composition' => json_encode(['4 members: grandmother, 2 children, 1 grandchild']),
-                'barangay_educational_facilities' => json_encode(['Elementary Primary']),
-                'livelihood_options' => json_encode(['Selling', '4Ps']),
-                'interested_in_livelihood_training' => 'Yes',
-                'areas_of_educational_interest' => json_encode(['Health', 'Laws']),
-                'preferred_training_time' => 'Morning 8-12',
-                'preferred_training_days' => json_encode(['Wednesday']),
-                'desired_training' => json_encode(['Food Processing', 'Handicrafts']),
-                'common_illnesses' => json_encode(['Hypertension', 'Diabetes', 'Arthritis']),
-                'action_when_sick' => json_encode(['Herbal Medicine', 'Hilot']),
-                'barangay_medical_supplies_available' => json_encode(['Health Center']),
-                'has_barangay_health_programs' => 'Yes',
-                'benefits_from_barangay_programs' => 'Yes',
-                'programs_benefited_from' => json_encode(['Free Medicine', 'Free Consultation']),
-                'water_source' => json_encode(['River/Stream', 'Spring Water']),
-                'water_source_distance' => '250 meters away',
-                'garbage_disposal_method' => json_encode(['Anywhere', 'Vacant lot']),
-                'household_member_currently_studying' => 'No',
-                'interested_in_continuing_studies' => 'No',
-                'has_own_toilet' => 'No',
-                'toilet_type' => json_encode(['Antipolo style']),
-                'keeps_animals' => 'Yes',
-                'animals_kept' => json_encode(['Chicken', 'Cat']),
-                'house_type' => json_encode(['Nipa/Bamboo']),
-                'tenure_status' => json_encode(['Own house/land']),
-                'has_electricity' => 'No',
-                'light_source_without_power' => json_encode(['Oil lamp', 'Candle']),
-                'appliances_owned' => json_encode(['Radio']),
-                'barangay_recreational_facilities' => json_encode(['Soccer Field']),
-                'use_of_free_time' => json_encode(['Sleeping', 'Staying home']),
-                'member_of_organization' => 'No',
-                'organization_types' => json_encode([]),
-                'organization_meeting_frequency' => null,
-                'organization_usual_activities' => null,
-                'household_members_in_organization' => json_encode([]),
-                'position_in_organization' => null,
-                'family_problems' => json_encode(['Cannot support family needs']),
-                'health_problems' => json_encode(['Malnourished', 'Sickly children']),
-                'educational_problems' => json_encode(['Lack of equipment']),
-                'employment_problems' => json_encode(['Lack of employment']),
-                'infrastructure_problems' => json_encode(['Difficult roads', 'No electric posts']),
-                'economic_problems' => json_encode(['Lack of buyers', 'No capital']),
-                'security_problems' => json_encode(['No police assigned', 'Theft']),
-                'barangay_service_ratings' => json_encode(['Law Enforcement' => 1, 'Health Service' => 3, 'Infrastructure Service' => 1]),
-                'general_feedback' => 'Priority: basic utilities and livelihood for immediate sustenance.',
-                'available_for_training' => 'No',
-                'reason_not_available' => 'Health concerns and household responsibilities.',
-                'uploaded_by' => $secretary?->id ?? 1,
-            ],
-            [
-                'community_id' => $communities[1]->id ?? 1,
-                'quarter' => 'Q4',
-                'year' => 2024,
-                'respondent_first_name' => 'Antonio',
-                'respondent_middle_name' => 'Lopez',
-                'respondent_last_name' => 'Gonzales',
-                'respondent_age' => 45,
-                'respondent_civil_status' => 'Married',
-                'respondent_sex' => 'Male',
-                'respondent_religion' => 'Catholic',
-                'respondent_educational_attainment' => json_encode(['High School']),
-                'family_composition' => json_encode(['7 members: 2 adults, 4 children, 1 elderly']),
-                'barangay_educational_facilities' => json_encode(['Elementary Primary', 'Elementary Intermediate', 'Secondary']),
-                'livelihood_options' => json_encode(['Farming', 'Rentals']),
-                'interested_in_livelihood_training' => 'Yes',
-                'areas_of_educational_interest' => json_encode(['Agricultural Issues']),
-                'preferred_training_time' => 'Morning 8-12',
-                'preferred_training_days' => json_encode(['Wednesday', 'Saturday']),
-                'desired_training' => json_encode(['Food Processing', 'Dress Making']),
-                'common_illnesses' => json_encode(['Colds', 'Pneumonia']),
-                'action_when_sick' => json_encode(['Hospital/Health Center']),
-                'barangay_medical_supplies_available' => json_encode(['Health Center', 'Ambulance']),
-                'has_barangay_health_programs' => 'Yes',
-                'benefits_from_barangay_programs' => 'Yes',
-                'programs_benefited_from' => json_encode(['Free Consultation', 'Free Vaccine']),
-                'water_source' => json_encode(['Deep Well', 'Spring Water']),
-                'water_source_distance' => 'Just outside',
-                'garbage_disposal_method' => json_encode(['Compost pit', 'Vacant lot']),
-                'household_member_currently_studying' => 'Yes',
-                'interested_in_continuing_studies' => 'Yes',
-                'has_own_toilet' => 'Yes',
-                'toilet_type' => json_encode(['Water sealed']),
-                'keeps_animals' => 'Yes',
-                'animals_kept' => json_encode(['Chicken', 'Duck', 'Pig']),
-                'house_type' => json_encode(['Half concrete/wood', 'Wood/Bamboo']),
-                'tenure_status' => json_encode(['Own house/land']),
-                'has_electricity' => 'Yes',
-                'light_source_without_power' => json_encode(['Solar lamp']),
-                'appliances_owned' => json_encode(['TV', 'Refrigerator', 'Gas Range', 'Electric Fan']),
-                'barangay_recreational_facilities' => json_encode(['Basketball Court', 'Volleyball Court', 'Soccer Field']),
-                'use_of_free_time' => json_encode(['Playing basketball', 'Working in farm']),
-                'member_of_organization' => 'Yes',
-                'organization_types' => json_encode(['Civic', 'Agricultural']),
-                'organization_meeting_frequency' => 'Monthly',
-                'organization_usual_activities' => 'Farm cooperative meetings, crop planning',
-                'household_members_in_organization' => json_encode(['Self', 'Spouse']),
-                'position_in_organization' => 'Secretary',
-                'family_problems' => json_encode(['Low income']),
-                'health_problems' => json_encode(['Malnourished']),
-                'educational_problems' => json_encode(['Far school']),
-                'employment_problems' => json_encode(['Lack of skills']),
-                'infrastructure_problems' => json_encode(['Difficult roads', 'No irrigation']),
-                'economic_problems' => json_encode(['Low crop yield', 'Market access']),
-                'security_problems' => json_encode([]),
-                'barangay_service_ratings' => json_encode(['Law Enforcement' => 3, 'Health Service' => 4, 'Infrastructure Service' => 2]),
-                'general_feedback' => 'Community needs agricultural training and farm-to-market support.',
-                'available_for_training' => 'Yes',
-                'uploaded_by' => $secretary?->id ?? 1,
-            ],
-            [
-                'community_id' => $communities[2]->id ?? 1,
-                'quarter' => 'Q1',
-                'year' => 2025,
-                'respondent_first_name' => 'Lucia',
-                'respondent_middle_name' => 'Marie',
-                'respondent_last_name' => 'Fernandez',
-                'respondent_age' => 32,
-                'respondent_civil_status' => 'Single',
-                'respondent_sex' => 'Female',
-                'respondent_religion' => 'Catholic',
-                'respondent_educational_attainment' => json_encode(['College']),
-                'family_composition' => json_encode(['4 members: 1 adult, 2 siblings, 1 parent']),
-                'barangay_educational_facilities' => json_encode(['Secondary', 'College']),
-                'livelihood_options' => json_encode(['Service Work', 'Remittance']),
-                'interested_in_livelihood_training' => 'No',
-                'areas_of_educational_interest' => json_encode([]),
-                'preferred_training_time' => null,
-                'preferred_training_days' => json_encode([]),
-                'desired_training' => json_encode([]),
-                'common_illnesses' => json_encode([]),
-                'action_when_sick' => json_encode(['Hospital/Health Center']),
-                'barangay_medical_supplies_available' => json_encode(['Health Center']),
-                'has_barangay_health_programs' => 'Yes',
-                'benefits_from_barangay_programs' => 'No',
-                'programs_benefited_from' => json_encode([]),
-                'water_source' => json_encode(['NAWASA']),
-                'water_source_distance' => 'Just outside',
-                'garbage_disposal_method' => json_encode(['Community pickup']),
-                'household_member_currently_studying' => 'No',
-                'interested_in_continuing_studies' => 'No',
-                'has_own_toilet' => 'Yes',
-                'toilet_type' => json_encode(['Flush toilet']),
-                'keeps_animals' => 'No',
-                'animals_kept' => json_encode([]),
-                'house_type' => json_encode(['All concrete']),
-                'tenure_status' => json_encode(['Own house/land']),
-                'has_electricity' => 'Yes',
-                'light_source_without_power' => json_encode([]),
-                'appliances_owned' => json_encode(['TV', 'Computer', 'Washing Machine', 'Refrigerator', 'Electric Fan', 'Karaoke']),
-                'barangay_recreational_facilities' => json_encode(['Basketball Court', 'Volleyball Court']),
-                'use_of_free_time' => json_encode(['Watching TV', 'Chatting']),
-                'member_of_organization' => 'Yes',
-                'organization_types' => json_encode(['Civic']),
-                'organization_meeting_frequency' => 'Monthly',
-                'organization_usual_activities' => 'Community welfare, charity works',
-                'household_members_in_organization' => json_encode(['Self']),
-                'position_in_organization' => 'Vice President',
-                'family_problems' => json_encode([]),
-                'health_problems' => json_encode([]),
-                'educational_problems' => json_encode([]),
-                'employment_problems' => json_encode([]),
-                'infrastructure_problems' => json_encode([]),
-                'economic_problems' => json_encode([]),
-                'security_problems' => json_encode([]),
-                'barangay_service_ratings' => json_encode(['Law Enforcement' => 4, 'Fire Protection' => 4, 'Health Service' => 5, 'Education Service' => 5, 'Infrastructure Service' => 4]),
-                'general_feedback' => 'Community doing well. Ready to support community development initiatives.',
-                'available_for_training' => 'No',
-                'uploaded_by' => $secretary?->id ?? 1,
-            ],
-        ];
+        // Sample respondent data for variety
+        $firstNames = ['Maria', 'Juan', 'Rosa', 'Antonio', 'Lucia', 'Pedro', 'Ana', 'Jose', 'Carmen', 'Miguel', 'Isabella', 'Diego', 'Sofia', 'Ricardo', 'Magdalena', 'Fernando', 'Emilia', 'Bernard', 'Patricia', 'Alberto'];
+        $lastNames = ['Santos', 'Dela Cruz', 'Reyes', 'Gonzales', 'Fernandez', 'Lopez', 'Rivera', 'Ramirez', 'Torres', 'Cruz', 'Morales', 'Gutierrez', 'Rojas', 'Vargas', 'Castro', 'Medina', 'Flores', 'Silva', 'Rios', 'Soto'];
+
+        $assessments = array_merge(
+            $this->generateAssessments($anibong, $secretary, 'Q1', 2026, 1),
+            $this->generateAssessments($anibong, $secretary, 'Q2', 2026, 21)
+        );
 
         foreach ($assessments as $assessment) {
             NeedsAssessment::create($assessment);
         }
     }
+
+    private function generateAssessments($community, $secretary, $quarter, $year, $startId): array
+    {
+        $firstNames = ['Maria', 'Juan', 'Rosa', 'Antonio', 'Lucia', 'Pedro', 'Ana', 'Jose', 'Carmen', 'Miguel', 'Isabella', 'Diego', 'Sofia', 'Ricardo', 'Magdalena', 'Fernando', 'Emilia', 'Bernard', 'Patricia', 'Alberto'];
+        $lastNames = ['Santos', 'Dela Cruz', 'Reyes', 'Gonzales', 'Fernandez', 'Lopez', 'Rivera', 'Ramirez', 'Torres', 'Cruz', 'Morales', 'Gutierrez', 'Rojas', 'Vargas', 'Castro', 'Medina', 'Flores', 'Silva', 'Rios', 'Soto'];
+        $middleNames = ['Cruz', 'Reyes', 'Lopez', 'Garcia', 'Torres', 'Rodriguez', 'Martinez', 'Hernandez', 'Gonzalez', null];
+
+        $assessments = [];
+        
+        for ($i = 0; $i < 20; $i++) {
+            $age = rand(18, 75);
+            $hasProblems = rand(0, 3); // Distribute problem levels
+            $education = $age < 25 ? 'High School' : ['Elementary', 'High School', 'College'][rand(0, 2)];
+            
+            $assessment = [
+                'community_id' => $community->id,
+                'quarter' => $quarter,
+                'year' => $year,
+                'respondent_first_name' => $firstNames[($startId + $i - 1) % count($firstNames)],
+                'respondent_middle_name' => $middleNames[rand(0, count($middleNames) - 1)],
+                'respondent_last_name' => $lastNames[($startId + $i + 5) % count($lastNames)],
+                'respondent_age' => $age,
+                'respondent_civil_status' => $age < 25 ? 'Single' : ['Single', 'Married', 'Widowed'][rand(0, 2)],
+                'respondent_sex' => rand(0, 1) ? 'Male' : 'Female',
+                'respondent_religion' => ['Catholic', 'Christian', 'Muslim'][rand(0, 2)],
+                'respondent_educational_attainment' => json_encode([$education]),
+                'family_composition' => json_encode([rand(2, 8) . ' members']),
+                'barangay_educational_facilities' => json_encode(['Elementary Primary', 'Secondary']),
+                'livelihood_options' => json_encode($this->getLivelihoods($age)),
+                'interested_in_livelihood_training' => rand(0, 1) ? 'Yes' : 'No',
+                'areas_of_educational_interest' => json_encode($this->getEducationalInterests()),
+                'preferred_training_time' => $hasProblems >= 2 ? 'Morning 8-12' : null,
+                'preferred_training_days' => $hasProblems >= 2 ? json_encode(['Wednesday', 'Saturday']) : json_encode([]),
+                'desired_training' => $hasProblems >= 2 ? json_encode($this->getTraining()) : json_encode([]),
+                'common_illnesses' => json_encode($this->getIllnesses($age, $hasProblems)),
+                'action_when_sick' => json_encode($this->getHealthAction()),
+                'barangay_medical_supplies_available' => json_encode(['Health Center']),
+                'has_barangay_health_programs' => 'Yes',
+                'benefits_from_barangay_programs' => rand(0, 1) ? 'Yes' : 'No',
+                'programs_benefited_from' => json_encode(['Free Consultation']),
+                'water_source' => json_encode($this->getWaterSource()),
+                'water_source_distance' => ['Just outside', '250 meters away'][rand(0, 1)],
+                'garbage_disposal_method' => json_encode($hasProblems >= 2 ? ['Anywhere'] : ['Compost pit']),
+                'household_member_currently_studying' => rand(0, 1) ? 'Yes' : 'No',
+                'interested_in_continuing_studies' => rand(0, 1) ? 'Yes' : 'No',
+                'has_own_toilet' => $hasProblems >= 2 ? 'No' : 'Yes',
+                'toilet_type' => json_encode($hasProblems >= 2 ? ['Antipolo style'] : ['Flush toilet']),
+                'keeps_animals' => rand(0, 1) ? 'Yes' : 'No',
+                'animals_kept' => json_encode($this->getAnimals()),
+                'house_type' => json_encode($this->getHouseType($hasProblems)),
+                'tenure_status' => json_encode(['Own house/land']),
+                'has_electricity' => $hasProblems >= 3 ? 'No' : 'Yes',
+                'light_source_without_power' => json_encode($hasProblems >= 3 ? ['Oil lamp', 'Candle'] : []),
+                'appliances_owned' => json_encode($this->getAppliances($hasProblems)),
+                'barangay_recreational_facilities' => json_encode(['Basketball Court', 'Volleyball Court']),
+                'use_of_free_time' => json_encode(['Playing basketball', 'Watching TV']),
+                'member_of_organization' => rand(0, 1) ? 'Yes' : 'No',
+                'organization_types' => json_encode($this->getOrganizations()),
+                'organization_meeting_frequency' => rand(0, 1) ? 'Monthly' : 'Weekly',
+                'organization_usual_activities' => 'Community activities',
+                'household_members_in_organization' => json_encode(['Self']),
+                'position_in_organization' => ['Member', 'Treasurer', 'Secretary'][rand(0, 2)],
+                'family_problems' => json_encode($this->getFamilyProblems($hasProblems)),
+                'health_problems' => json_encode($this->getHealthProblems($age, $hasProblems)),
+                'educational_problems' => json_encode($hasProblems >= 1 ? ['Far school'] : []),
+                'employment_problems' => json_encode($hasProblems >= 1 ? ['Lack of skills'] : []),
+                'infrastructure_problems' => json_encode($this->getInfrastructureProblems($hasProblems)),
+                'economic_problems' => json_encode($hasProblems >= 2 ? ['Low income', 'No capital'] : []),
+                'security_problems' => json_encode($hasProblems >= 3 ? ['No police presence'] : []),
+                'barangay_service_ratings' => json_encode(['Law Enforcement' => rand(1, 5), 'Health Service' => rand(3, 5), 'Education Service' => rand(2, 4)]),
+                'general_feedback' => $this->getFeedback($hasProblems),
+                'available_for_training' => $hasProblems >= 2 ? 'Yes' : 'No',
+                'reason_not_available' => $hasProblems < 2 ? 'Work schedule' : null,
+                'uploaded_by' => $secretary?->id ?? 1,
+            ];
+
+            $assessments[] = $assessment;
+        }
+
+        return $assessments;
+    }
+
+    private function getLivelihoods($age): array
+    {
+        $all = ['Farming', 'Fishing', 'Service Work', 'Selling', 'Driving', 'Construction'];
+        return array_slice($all, 0, rand(1, 2));
+    }
+
+    private function getEducationalInterests(): array
+    {
+        $all = ['Math', 'English', 'Science', 'Agricultural Issues', 'Health'];
+        return array_slice($all, 0, rand(1, 3));
+    }
+
+    private function getTraining(): array
+    {
+        $all = ['Food Processing', 'Animal Husbandry', 'Vegetable Farming', 'Dress Making', 'Computer'];
+        return array_slice($all, 0, rand(1, 2));
+    }
+
+    private function getIllnesses($age, $severity): array
+    {
+        if ($severity >= 3) {
+            return ['Diabetes', 'Hypertension', 'Arthritis'];
+        } elseif ($severity >= 2) {
+            return ['Colds', 'Headache', 'Cough'];
+        }
+        return [];
+    }
+
+    private function getHealthAction(): array
+    {
+        $actions = ['Hospital/Health Center', 'Herbal Medicine', 'Home Remedy'];
+        return array_slice($actions, 0, rand(1, 2));
+    }
+
+    private function getWaterSource(): array
+    {
+        $sources = ['NAWASA', 'Deep Well', 'Spring Water'];
+        return array_slice($sources, 0, rand(1, 2));
+    }
+
+    private function getAnimals(): array
+    {
+        $all = ['Chicken', 'Duck', 'Pig', 'Goat', 'Cat'];
+        return rand(0, 1) ? array_slice($all, 0, rand(1, 2)) : [];
+    }
+
+    private function getHouseType($severity): array
+    {
+        if ($severity >= 2) {
+            return ['Nipa/Bamboo'];
+        } elseif ($severity >= 1) {
+            return ['Half concrete/wood'];
+        }
+        return ['All concrete'];
+    }
+
+    private function getAppliances($severity): array
+    {
+        if ($severity >= 2) {
+            return ['Radio'];
+        } elseif ($severity >= 1) {
+            return ['TV', 'Electric Fan'];
+        }
+        return ['TV', 'Refrigerator', 'Electric Fan', 'Washing Machine'];
+    }
+
+    private function getOrganizations(): array
+    {
+        $orgs = ['Civic', 'Religious', 'Agricultural', 'Sports'];
+        return rand(0, 1) ? array_slice($orgs, 0, rand(1, 2)) : [];
+    }
+
+    private function getFamilyProblems($severity): array
+    {
+        if ($severity >= 2) {
+            return ['Low income', 'Cannot support needs'];
+        } elseif ($severity >= 1) {
+            return ['Low income'];
+        }
+        return [];
+    }
+
+    private function getHealthProblems($age, $severity): array
+    {
+        if ($age > 50 && $severity >= 2) {
+            return ['Arthritis', 'Hypertension'];
+        } elseif ($severity >= 2) {
+            return ['Malnourished'];
+        }
+        return [];
+    }
+
+    private function getInfrastructureProblems($severity): array
+    {
+        if ($severity >= 2) {
+            return ['Difficult roads', 'No electricity'];
+        } elseif ($severity >= 1) {
+            return ['Difficult roads'];
+        }
+        return [];
+    }
+
+    private function getFeedback($severity): string
+    {
+        if ($severity >= 3) {
+            return 'Priority: basic utilities and livelihood support needed.';
+        } elseif ($severity >= 2) {
+            return 'Community needs training and infrastructure development.';
+        } elseif ($severity >= 1) {
+            return 'Minor needs, mostly livelihood and skills training.';
+        }
+        return 'Community doing well, ready for development initiatives.';
+    }
 }
+
