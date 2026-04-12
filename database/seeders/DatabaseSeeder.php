@@ -31,6 +31,9 @@ class DatabaseSeeder extends Seeder
             'role' => 'secretary',
         ]);
 
+        // Call school and community seeder
+        $this->call(SchoolAndCommunitySeeder::class);
+
         // Call extension program seeder
         $this->call(ExtensionProgramSeeder::class);
 
