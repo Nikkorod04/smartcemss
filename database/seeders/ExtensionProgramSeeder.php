@@ -124,15 +124,39 @@ class ExtensionProgramSeeder extends Seeder
             ]
         );
 
-        // Attach all Samar/Leyte communities to both programs
-        foreach ($taraBasaCommunities as $community) {
-            $program1->communities()->syncWithoutDetaching($community->id);
-            $program2->communities()->syncWithoutDetaching($community->id);
+        // Distribute Samar/Leyte communities across programs
+        // Strategy: Most communities link to 1 program, 4 communities link to both
+        $communityArray = $taraBasaCommunities->toArray();
+        $totalCommunities = count($communityArray);
+        
+        // Shuffle for random distribution
+        shuffle($communityArray);
+        
+        // Split: 30 to Program 1 only, 10 to Program 2 only, 4 to both
+        $program1OnlyCount = 30;
+        $program2OnlyCount = 10;
+        $bothProgramsCount = 4;
+        
+        // Program 1 only (first 30)
+        for ($i = 0; $i < $program1OnlyCount; $i++) {
+            $program1->communities()->syncWithoutDetaching($communityArray[$i]['id']);
+        }
+        
+        // Program 2 only (next 10)
+        for ($i = $program1OnlyCount; $i < $program1OnlyCount + $program2OnlyCount; $i++) {
+            $program2->communities()->syncWithoutDetaching($communityArray[$i]['id']);
+        }
+        
+        // Both programs (last 4)
+        for ($i = $program1OnlyCount + $program2OnlyCount; $i < $program1OnlyCount + $program2OnlyCount + $bothProgramsCount; $i++) {
+            $program1->communities()->syncWithoutDetaching($communityArray[$i]['id']);
+            $program2->communities()->syncWithoutDetaching($communityArray[$i]['id']);
         }
 
         $this->command->info('Extension programs seeded successfully!');
         $this->command->info('✓ Tara, Basa! Tutoring Program created');
         $this->command->info('✓ PURPPLE Extension Project created');
+        $this->command->info('✓ Community distribution: 30 → Tara Basa only, 10 → PURPPLE only, 4 → Both programs');
     }
 
     /**
