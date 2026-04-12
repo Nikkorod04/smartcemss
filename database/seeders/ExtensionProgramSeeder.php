@@ -96,8 +96,7 @@ class ExtensionProgramSeeder extends Seeder
                 'planned_end_date' => Carbon::create(2026, 4, 15),
                 'target_beneficiaries' => 25,
                 'beneficiary_categories' => json_encode([
-                    'Direct Teacher Participants' => 10,
-                    'Indirect Teacher Beneficiaries' => 15,
+                    'Teacher Participants' => 25,
                 ]),
                 'allocated_budget' => 850000,
                 'program_lead_id' => $faculty2Data['faculty']->id,

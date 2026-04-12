@@ -110,25 +110,15 @@ class BeneficiarySeeder extends Seeder
         ];
 
         $purppleCategories = [
-            // Names 86-95: Direct Teacher Participants (PURPPLE)
+            // Names 86-110: Teacher Participants (PURPPLE) - consolidated
             [
-                'names' => array_slice($allNames, 85, 10),
+                'names' => array_slice($allNames, 85, 25),
                 'program_id' => $purpple->id,
-                'category' => 'Direct Teacher Participants',
-                'age_range' => [28, 45],
+                'category' => 'Teacher Participants',
+                'age_range' => [28, 50],
                 'occupation' => 'Teacher',
                 'education' => 'College',
-                'monthly_income_range' => [25000, 35000],
-            ],
-            // Names 96-110: Indirect Teacher Beneficiaries (PURPPLE)
-            [
-                'names' => array_slice($allNames, 95, 15),
-                'program_id' => $purpple->id,
-                'category' => 'Indirect Teacher Beneficiaries',
-                'age_range' => [30, 50],
-                'occupation' => 'Teacher',
-                'education' => 'College',
-                'monthly_income_range' => [23000, 32000],
+                'monthly_income_range' => [23000, 35000],
             ],
         ];
 
@@ -156,7 +146,7 @@ class BeneficiarySeeder extends Seeder
                 $monthlyIncome = rand($incomeRange[0], $incomeRange[1]);
 
                 // Create beneficiary with ONE program only
-                Beneficiary::updateOrCreate(
+                $beneficiary = Beneficiary::updateOrCreate(
                     [
                         'first_name' => $firstName,
                         'last_name' => $lastName,
@@ -185,6 +175,9 @@ class BeneficiarySeeder extends Seeder
                         'updated_by' => $creatorId,
                     ]
                 );
+                
+                // Attach program to pivot table (one-to-one relationship via pivot table)
+                $beneficiary->extensionPrograms()->syncWithoutDetaching([$categoryData['program_id']]);
             }
         }
 
@@ -196,7 +189,7 @@ class BeneficiarySeeder extends Seeder
             $firstName = implode(' ', $nameParts);
             $community = $communities->random();
 
-            Beneficiary::updateOrCreate(
+            $bufferBeneficiary = Beneficiary::updateOrCreate(
                 [
                     'first_name' => $firstName,
                     'last_name' => $lastName,
@@ -225,6 +218,9 @@ class BeneficiarySeeder extends Seeder
                     'updated_by' => $creatorId,
                 ]
             );
+            
+            // Ensure pivot table is synced (empty for buffer beneficiaries)
+            $bufferBeneficiary->extensionPrograms()->sync([]);
         }
 
         $this->command->info('BeneficiarySeeder completed successfully!');
