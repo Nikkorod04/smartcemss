@@ -285,9 +285,12 @@
 
                         <div class="border-t border-gray-200 pt-4">
                             <p class="text-sm text-gray-600 mb-3">Partner Organizations</p>
-                            @if ($program->partners && is_array($program->partners) && count($program->partners) > 0)
+                            @php
+                                $partners = is_array($program->partners) ? $program->partners : json_decode($program->partners, true) ?? [];
+                            @endphp
+                            @if (!empty($partners) && count($partners) > 0)
                             <div class="flex flex-wrap gap-1">
-                                @foreach ($program->partners as $partner)
+                                @foreach ($partners as $partner)
                                 <span class="inline-block px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
                                     {{ $partner }}
                                 </span>
