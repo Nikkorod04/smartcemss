@@ -19,522 +19,244 @@ class BeneficiarySeeder extends Seeder
      */
     public function run(): void
     {
-        // Get existing communities and programs
-        $communities = Community::all();
-        $programs = ExtensionProgram::all();
+        // Get existing communities from Samar/Leyte regions only
+        $communities = Community::where('municipality', 'LIKE', '%Tacloban%')
+            ->orWhere('municipality', 'LIKE', '%Basey%')
+            ->orWhere('municipality', 'LIKE', '%Santa Rita%')
+            ->get();
+        
+        $taraBasa = ExtensionProgram::where('title', 'Tara, Basa! Tutoring Program')->first();
+        $purpple = ExtensionProgram::where('title', 'PURPPLE Extension Project')->first();
         $director = User::where('role', 'director')->first();
 
-        if ($communities->isEmpty() || $programs->isEmpty()) {
+        if ($communities->isEmpty() || !$taraBasa || !$purpple) {
             $this->command->warn('Communities or Programs not found. Please run ExtensionProgramSeeder first.');
             return;
         }
 
         $creatorId = $director?->id ?? 1;
-        
-        // Sample data for diverse beneficiaries
-        $beneficiaryData = [
-            // Group 1: College Student Tutors from Tara, Basa Program (NCR-based)
-            [
-                'first_name' => 'Maria',
-                'middle_name' => 'Reyes',
-                'last_name' => 'Santos',
-                'date_of_birth' => Carbon::create(2002, 3, 15),
-                'age' => 22,
-                'gender' => 'female',
-                'email' => 'maria.santos@student.lnu.edu.ph',
-                'phone' => '09161234567',
-                'address' => '123 Mahogany St.',
-                'barangay' => 'San Juan',
-                'municipality' => 'Quezon City',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'College Student Tutor',
-                'monthly_income' => 15000.00,
-                'occupation' => 'Student',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 2,
-                'status' => 'active',
-                'notes' => 'Chemistry major, participates in Tara, Basa tutoring program. Excellent academic performance.',
-            ],
-            [
-                'first_name' => 'Juan',
-                'middle_name' => 'Cruz',
-                'last_name' => 'Dela Cruz',
-                'date_of_birth' => Carbon::create(2001, 7, 22),
-                'age' => 23,
-                'gender' => 'male',
-                'email' => 'juan.delacruz@student.lnu.edu.ph',
-                'phone' => '09171234568',
-                'address' => '456 Narra Ave.',
-                'barangay' => 'Diliman',
-                'municipality' => 'Quezon City',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'College Student Tutor',
-                'monthly_income' => 16500.00,
-                'occupation' => 'Student',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 3,
-                'status' => 'active',
-                'notes' => 'Education major, leading reading intervention sessions for Grade 1 learners.',
-            ],
-            [
-                'first_name' => 'Ana',
-                'middle_name' => 'Gutierrez',
-                'last_name' => 'Rodriguez',
-                'date_of_birth' => Carbon::create(2002, 11, 8),
-                'age' => 21,
-                'gender' => 'female',
-                'email' => 'ana.rodriguez@student.lnu.edu.ph',
-                'phone' => '09181234569',
-                'address' => '789 Pines St.',
-                'barangay' => 'Tondo',
-                'municipality' => 'Manila',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'College Student Tutor',
-                'monthly_income' => 15000.00,
-                'occupation' => 'Student',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 1,
-                'status' => 'active',
-                'notes' => 'English Education student. Conducting tutoring sessions in 2 schools.',
-            ],
-            [
-                'first_name' => 'Carlos',
-                'middle_name' => 'Mercado',
-                'last_name' => 'Hernandez',
-                'date_of_birth' => Carbon::create(2001, 5, 30),
-                'age' => 24,
-                'gender' => 'male',
-                'email' => 'carlos.hernandez@student.lnu.edu.ph',
-                'phone' => '09191234570',
-                'address' => '321 Acacia Ln.',
-                'barangay' => 'Ermita',
-                'municipality' => 'Manila',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'College Student Tutor',
-                'monthly_income' => 17000.00,
-                'occupation' => 'Student',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 4,
-                'status' => 'active',
-                'notes' => 'Math Education major, top performer in tutoring quality assessments.',
-            ],
-            [
-                'first_name' => 'Rosa',
-                'middle_name' => 'Manuel',
-                'last_name' => 'Garcia',
-                'date_of_birth' => Carbon::create(2003, 2, 14),
-                'age' => 21,
-                'gender' => 'female',
-                'email' => 'rosa.garcia@student.lnu.edu.ph',
-                'phone' => '09201234571',
-                'address' => '654 Daisy Dr.',
-                'barangay' => 'San Juan',
-                'municipality' => 'Quezon City',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'College Student Tutor',
-                'monthly_income' => 15000.00,
-                'occupation' => 'Student',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 2,
-                'status' => 'inactive',
-                'notes' => 'Transferred to another program. Completed 18 tutoring sessions.',
-            ],
 
-            // Group 2: Youth Development Workers
-            [
-                'first_name' => 'Miguel',
-                'middle_name' => 'Santos',
-                'last_name' => 'Vergara',
-                'date_of_birth' => Carbon::create(1995, 8, 10),
-                'age' => 30,
-                'gender' => 'male',
-                'email' => 'miguel.vergara@lnu.edu.ph',
-                'phone' => '09211234572',
-                'address' => '987 Orchid St.',
-                'barangay' => 'Diliman',
-                'municipality' => 'Quezon City',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'Youth Development Worker',
-                'monthly_income' => 18500.00,
-                'occupation' => 'Youth Coordinator',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Married',
-                'number_of_dependents' => 3,
-                'status' => 'active',
-                'notes' => 'Coordinates community engagement in Tara, Basa program. 5 years community development experience.',
-            ],
-            [
-                'first_name' => 'Lucia',
-                'middle_name' => 'Aquino',
-                'last_name' => 'Morales',
-                'date_of_birth' => Carbon::create(1998, 6, 25),
-                'age' => 27,
-                'gender' => 'female',
-                'email' => 'lucia.morales@lnu.edu.ph',
-                'phone' => '09221234573',
-                'address' => '147 Sampaguita Ave.',
-                'barangay' => 'Tondo',
-                'municipality' => 'Manila',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'Youth Development Worker',
-                'monthly_income' => 17000.00,
-                'occupation' => 'Program Officer',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 1,
-                'status' => 'active',
-                'notes' => 'Manages parent engagement sessions and facilitates "Nanay-Tatay" programs.',
-            ],
-            [
-                'first_name' => 'Pedro',
-                'middle_name' => 'Reyes',
-                'last_name' => 'Fernandez',
-                'date_of_birth' => Carbon::create(1997, 4, 12),
-                'age' => 28,
-                'gender' => 'male',
-                'email' => 'pedro.fernandez@lnu.edu.ph',
-                'phone' => '09231234574',
-                'address' => '258 Rose Rd.',
-                'barangay' => 'Ermita',
-                'municipality' => 'Manila',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'Youth Development Worker',
-                'monthly_income' => 18000.00,
-                'occupation' => 'Community Facilitator',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Married',
-                'number_of_dependents' => 2,
-                'status' => 'active',
-                'notes' => 'Oversees implementation compliance and quality assurance across 3 schools.',
-            ],
+        // All 125 beneficiary names from Samar/Leyte
+        $allNames = [
+            'John Rey dela Cruz', 'Maria Fe Flores', 'Angelito Solayao', 'Althea Casaljay', 'Nathaniel Labong',
+            'Samantha Picardal', 'Jacob Montes', 'Princess Bajado', 'Joshua Rivera', 'Sofia Macawile',
+            'Gabriel Moscosa', 'Andrea Boco', 'Ethan Pajanustan', 'Chloe Elacion', 'Kyle Salazar',
+            'Nathalie Canillas', 'Angelo Alvarina', 'Jasmine Demillo', 'Ezekiel Toling', 'Angela Tenedero',
+            'James Cabe', 'Sophia Obiado', 'Nathan Durin', 'Liezel Empon', 'Mark Anthony Solayao',
+            'Rose Ann Casaljay', 'Daniel Flores', 'Kristine dela Cruz', 'Rafael Labong', 'Marjorie Picardal',
+            'Lester Montes', 'Cherry Bajado', 'Rommel Rivera', 'Hazel Macawile', 'Bryan Moscosa',
+            'Elaine Boco', 'Vincent Pajanustan', 'Rica Elacion', 'Paolo Salazar', 'Lovely Canillas',
+            'Christian Alvarina', 'Joanna Demillo', 'Allan Toling', 'Michelle Tenedero', 'Ronald Cabe',
+            'Grace Obiado', 'Edwin Durin', 'April Empon', 'Jerome Solayao', 'Fatima Casaljay',
+            'Kenneth Flores', 'Irish dela Cruz', 'Darwin Labong', 'Sheryl Picardal', 'Marlon Montes',
+            'Jenny Bajado', 'Arnel Rivera', 'Rhea Macawile', 'Jayson Moscosa', 'Bernadette Boco',
+            'Niño Pajanustan', 'Melody Elacion', 'Francis Salazar', 'Catherine Canillas', 'Gerald Alvarina',
+            'Teresa Demillo', 'Harold Toling', 'Vanessa Tenedero', 'Dexter Cabe', 'Kristel Obiado',
+            'Roland Durin', 'Abigail Empon', 'Vincent Solayao', 'Dianne Casaljay', 'Carlo Flores',
+            'Rowena dela Cruz', 'Erickson Labong', 'Maricel Picardal', 'Dennis Montes', 'Precious Bajado',
+            'Randy Rivera', 'Jocelyn Macawile', 'Jeffrey Moscosa', 'Annalyn Boco', 'Glenn Pajanustan',
+            'Eunice Elacion', 'Patrick Salazar', 'Rosalie Canillas', 'Bernard Alvarina', 'Lyn Demillo',
+            'Timothy Toling', 'Carmela Tenedero', 'Jonathan Cabe', 'Gladys Obiado', 'Marvin Durin',
+            'Sharlene Empon', 'Adrian Solayao', 'Beatrice Casaljay', 'Frederick Flores', 'Evangeline dela Cruz',
+            'Rodrigo Labong', 'Imelda Picardal', 'Oscar Montes', 'Vilma Bajado', 'Ernesto Rivera',
+            'Corazon Macawile', 'Renato Moscosa', 'Lilibeth Boco', 'Wilfredo Pajanustan', 'Josephine Elacion',
+            'Arturo Salazar', 'Remedios Canillas', 'Edgardo Alvarina', 'Lourdes Demillo', 'Mariano Toling',
+            'Reymark Abad', 'Christine Joy Gomera', 'Jeraldine Lacaba', 'Marvin Jay Tan', 'Analyn Sabulao',
+            'Romar Galos', 'Glenda Pacatang', 'Arnold Balberona', 'Shaira Mae Dacillo', 'Edgardo Villamor',
+        ];
 
-            // Group 3: Beneficiaries from Leyte Region (Palo area) - possibly for other programs
+        // Define beneficiary categories with name allocation and ONE program per person
+        $taraBasaCategories = [
+            // Names 1-25: College Student Tutors (Tara Basa)
             [
-                'first_name' => 'Delia',
-                'middle_name' => 'Villanueva',
-                'last_name' => 'Martinez',
-                'date_of_birth' => Carbon::create(2000, 9, 18),
-                'age' => 25,
-                'gender' => 'female',
-                'email' => 'delia.martinez@student.lnu.edu.ph',
-                'phone' => '09241234575',
-                'address' => '369 Narra St.',
-                'barangay' => 'Palo National High School Area',
-                'municipality' => 'Palo',
-                'province' => 'Leyte',
-                'beneficiary_category' => 'Student Beneficiary',
-                'monthly_income' => 5000.00,
+                'names' => array_slice($allNames, 0, 25),
+                'program_id' => $taraBasa->id,
+                'category' => 'College Student Tutors',
+                'age_range' => [21, 24],
                 'occupation' => 'Student',
-                'educational_attainment' => 'High School',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 0,
-                'status' => 'active',
-                'notes' => 'Grade 2 learner receiving intensive reading support through Tara, Basa program.',
+                'education' => 'College',
+                'monthly_income_range' => [15000, 17000],
             ],
+            // Names 26-35: Youth Development Workers (Tara Basa)
             [
-                'first_name' => 'Javier',
-                'middle_name' => 'Lintag',
-                'last_name' => 'Canutos',
-                'date_of_birth' => Carbon::create(2000, 12, 5),
-                'age' => 25,
-                'gender' => 'male',
-                'email' => 'javier.canutos@student.lnu.edu.ph',
-                'phone' => '09251234576',
-                'address' => '471 Yakal Ave.',
-                'barangay' => 'Cogon Elementary School Area',
-                'municipality' => 'Cogon',
-                'province' => 'Leyte',
-                'beneficiary_category' => 'Student Beneficiary',
-                'monthly_income' => 4500.00,
+                'names' => array_slice($allNames, 25, 10),
+                'program_id' => $taraBasa->id,
+                'category' => 'Youth Development Workers',
+                'age_range' => [27, 30],
+                'occupation' => 'Coordinator',
+                'education' => 'College',
+                'monthly_income_range' => [17000, 19000],
+            ],
+            // Names 36-60: Grade 1-2 Learners (Tara Basa)
+            [
+                'names' => array_slice($allNames, 35, 25),
+                'program_id' => $taraBasa->id,
+                'category' => 'Grade 1-2 Learners',
+                'age_range' => [6, 8],
                 'occupation' => 'Student',
-                'educational_attainment' => 'Elementary',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 0,
-                'status' => 'active',
-                'notes' => 'Grade 1 learner making progress in reading proficiency. Active in parent engagement sessions.',
+                'education' => 'Elementary',
+                'monthly_income_range' => [0, 5000],
             ],
+            // Names 61-85: Parent Participants (Tara Basa)
             [
-                'first_name' => 'Elena',
-                'middle_name' => 'Ortiz',
-                'last_name' => 'Santiago',
-                'date_of_birth' => Carbon::create(1992, 7, 22),
-                'age' => 33,
-                'gender' => 'female',
-                'email' => 'elena.santiago@email.com',
-                'phone' => '09261234577',
-                'address' => '582 Mahogany Ln.',
-                'barangay' => 'Barangay Maharlika',
-                'municipality' => 'Palo',
-                'province' => 'Leyte',
-                'beneficiary_category' => 'Parent Participant',
-                'monthly_income' => 12000.00,
-                'occupation' => 'Vendor',
-                'educational_attainment' => 'High School',
-                'marital_status' => 'Married',
-                'number_of_dependents' => 3,
-                'status' => 'active',
-                'notes' => 'Active participant in Nanay-Tatay sessions. Mother of 2 students in program.',
-            ],
-            [
-                'first_name' => 'Francisco',
-                'middle_name' => 'Buot',
-                'last_name' => 'Oredeza',
-                'date_of_birth' => Carbon::create(1988, 3, 30),
-                'age' => 37,
-                'gender' => 'male',
-                'email' => 'francisco.oredeza@email.com',
-                'phone' => '09271234578',
-                'address' => '693 Pines Dr.',
-                'barangay' => 'Barangay San Ricardo',
-                'municipality' => 'Palo',
-                'province' => 'Leyte',
-                'beneficiary_category' => 'Community Leader',
-                'monthly_income' => 20000.00,
-                'occupation' => 'Barangay Kagawad',
-                'educational_attainment' => 'High School',
-                'marital_status' => 'Married',
-                'number_of_dependents' => 4,
-                'status' => 'active',
-                'notes' => 'Barangay official supporting program implementation and community mobilization.',
-            ],
-            [
-                'first_name' => 'Violeta',
-                'middle_name' => 'Oclarit',
-                'last_name' => 'Albano',
-                'date_of_birth' => Carbon::create(1995, 11, 8),
-                'age' => 30,
-                'gender' => 'female',
-                'email' => 'violeta.albano@lnu.edu.ph',
-                'phone' => '09281234579',
-                'address' => '804 Acacia St.',
-                'barangay' => 'Palo National High School Area',
-                'municipality' => 'Palo',
-                'province' => 'Leyte',
-                'beneficiary_category' => 'Faculty Coordinator',
-                'monthly_income' => 35000.00,
-                'occupation' => 'School Administrator',
-                'educational_attainment' => 'Graduate',
-                'marital_status' => 'Married',
-                'number_of_dependents' => 2,
-                'status' => 'active',
-                'notes' => 'Palo NHS administrator coordinating school partnership with Tara, Basa program.',
-            ],
-
-            // Group 4: Additional diverse beneficiaries
-            [
-                'first_name' => 'Angelito',
-                'middle_name' => 'Gapuz',
-                'last_name' => 'Reyes',
-                'date_of_birth' => Carbon::create(1994, 5, 14),
-                'age' => 31,
-                'gender' => 'male',
-                'email' => 'angelito.reyes@email.com',
-                'phone' => '09291234580',
-                'address' => '915 Orchid Rd.',
-                'barangay' => 'San Juan',
-                'municipality' => 'Quezon City',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'Community Beneficiary',
-                'monthly_income' => 18000.00,
-                'occupation' => 'Mechanic',
-                'educational_attainment' => 'High School',
-                'marital_status' => 'Married',
-                'number_of_dependents' => 3,
-                'status' => 'active',
-                'notes' => 'Maintains community learning center where tutoring sessions are conducted.',
-            ],
-            [
-                'first_name' => 'Corazon',
-                'middle_name' => 'Laguna',
-                'last_name' => 'Valdez',
-                'date_of_birth' => Carbon::create(1993, 8, 20),
-                'age' => 32,
-                'gender' => 'female',
-                'email' => 'corazon.valdez@email.com',
-                'phone' => '09301234581',
-                'address' => '326 Sampaguita Ln.',
-                'barangay' => 'Diliman',
-                'municipality' => 'Quezon City',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'Community Beneficiary',
-                'monthly_income' => 16500.00,
-                'occupation' => 'Seamstress',
-                'educational_attainment' => 'High School',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 2,
-                'status' => 'active',
-                'notes' => 'Provides meals for tutors during Tara, Basa sessions. Single mother of 2 learners.',
-            ],
-            [
-                'first_name' => 'Ricardo',
-                'middle_name' => 'Manlangit',
-                'last_name' => 'Pascual',
-                'date_of_birth' => Carbon::create(1996, 2, 11),
-                'age' => 29,
-                'gender' => 'male',
-                'email' => 'ricardo.pascual@lnu.edu.ph',
-                'phone' => '09311234582',
-                'address' => '437 Daisy Ave.',
-                'barangay' => 'Tondo',
-                'municipality' => 'Manila',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'Program Assistant',
-                'monthly_income' => 16000.00,
-                'occupation' => 'Administrative Assistant',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 1,
-                'status' => 'active',
-                'notes' => 'Handles documentation and data management for Tara, Basa program.',
-            ],
-            [
-                'first_name' => 'Soledad',
-                'middle_name' => 'Ongcoy',
-                'last_name' => 'Dalumpines',
-                'date_of_birth' => Carbon::create(1991, 10, 27),
-                'age' => 34,
-                'gender' => 'female',
-                'email' => 'soledad.dalumpines@email.com',
-                'phone' => '09321234583',
-                'address' => '548 Rose St.',
-                'barangay' => 'Ermita',
-                'municipality' => 'Manila',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'Community Beneficiary',
-                'monthly_income' => 14000.00,
-                'occupation' => 'Housekeeper',
-                'educational_attainment' => 'Elementary',
-                'marital_status' => 'Married',
-                'number_of_dependents' => 4,
-                'status' => 'inactive',
-                'notes' => 'Previous participant. Transferred to province due to family relocation.',
-            ],
-            [
-                'first_name' => 'Alfred',
-                'middle_name' => 'Villanueva',
-                'last_name' => 'Bautista',
-                'date_of_birth' => Carbon::create(1999, 4, 6),
-                'age' => 26,
-                'gender' => 'male',
-                'email' => 'alfred.bautista@student.lnu.edu.ph',
-                'phone' => '09331234584',
-                'address' => '659 Narra St.',
-                'barangay' => 'San Juan',
-                'municipality' => 'Quezon City',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'College Student Tutor',
-                'monthly_income' => 15500.00,
-                'occupation' => 'Student',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 2,
-                'status' => 'active',
-                'notes' => 'Physics Education major. Conducts tutoring in low-income schools.',
-            ],
-            [
-                'first_name' => 'Victoria',
-                'middle_name' => 'Gutierrez',
-                'last_name' => 'Calleja',
-                'date_of_birth' => Carbon::create(2001, 6, 19),
-                'age' => 24,
-                'gender' => 'female',
-                'email' => 'victoria.calleja@student.lnu.edu.ph',
-                'phone' => '09341234585',
-                'address' => '770 Yakal Ln.',
-                'barangay' => 'Diliman',
-                'municipality' => 'Quezon City',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'College Student Tutor',
-                'monthly_income' => 15000.00,
-                'occupation' => 'Student',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Single',
-                'number_of_dependents' => 1,
-                'status' => 'active',
-                'notes' => 'Liberal Arts major with focus on reading and language development.',
-            ],
-            [
-                'first_name' => 'Roberto',
-                'middle_name' => 'Malunes',
-                'last_name' => 'Gonzales',
-                'date_of_birth' => Carbon::create(1996, 9, 14),
-                'age' => 29,
-                'gender' => 'male',
-                'email' => 'roberto.gonzales@lnu.edu.ph',
-                'phone' => '09351234586',
-                'address' => '881 Pines Ave.',
-                'barangay' => 'Tondo',
-                'municipality' => 'Manila',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'Youth Development Worker',
-                'monthly_income' => 17500.00,
-                'occupation' => 'Training Officer',
-                'educational_attainment' => 'College',
-                'marital_status' => 'Married',
-                'number_of_dependents' => 2,
-                'status' => 'active',
-                'notes' => 'Conducts training for college tutors and monitors implementation quality.',
-            ],
-            [
-                'first_name' => 'Rosario',
-                'middle_name' => 'Pagatpat',
-                'last_name' => 'Labao',
-                'date_of_birth' => Carbon::create(1992, 1, 8),
-                'age' => 34,
-                'gender' => 'female',
-                'email' => 'rosario.labao@email.com',
-                'phone' => '09361234587',
-                'address' => '992 Sampaguita Dr.',
-                'barangay' => 'Ermita',
-                'municipality' => 'Manila',
-                'province' => 'National Capital Region',
-                'beneficiary_category' => 'Parent Participant',
-                'monthly_income' => 11000.00,
-                'occupation' => 'Laundry Worker',
-                'educational_attainment' => 'High School',
-                'marital_status' => 'Married',
-                'number_of_dependents' => 3,
-                'status' => 'active',
-                'notes' => 'Consistent attendance in Nanay-Tatay parent sessions. Advocating for reading at home.',
+                'names' => array_slice($allNames, 60, 25),
+                'program_id' => $taraBasa->id,
+                'category' => 'Parent Participants',
+                'age_range' => [30, 45],
+                'occupation' => 'Various',
+                'education' => 'High School',
+                'monthly_income_range' => [10000, 20000],
             ],
         ];
 
-        // Create beneficiaries and assign random programs
-        foreach ($beneficiaryData as $data) {
-            // Find community by name
-            $community = $communities->firstWhere('name', function ($name) use ($data) {
-                return str_contains($data['barangay'], $name) || str_contains($data['municipality'], $name);
-            });
+        $purppleCategories = [
+            // Names 86-95: Direct Teacher Participants (PURPPLE)
+            [
+                'names' => array_slice($allNames, 85, 10),
+                'program_id' => $purpple->id,
+                'category' => 'Direct Teacher Participants',
+                'age_range' => [28, 45],
+                'occupation' => 'Teacher',
+                'education' => 'College',
+                'monthly_income_range' => [25000, 35000],
+            ],
+            // Names 96-110: Indirect Teacher Beneficiaries (PURPPLE)
+            [
+                'names' => array_slice($allNames, 95, 15),
+                'program_id' => $purpple->id,
+                'category' => 'Indirect Teacher Beneficiaries',
+                'age_range' => [30, 50],
+                'occupation' => 'Teacher',
+                'education' => 'College',
+                'monthly_income_range' => [23000, 32000],
+            ],
+        ];
 
-            // If community not found by direct match, get first community (fallback)
-            if (!$community) {
-                $community = $communities->first();
+        // Merge all categories
+        $allCategories = array_merge($taraBasaCategories, $purppleCategories);
+
+        // Create beneficiaries for each category
+        foreach ($allCategories as $categoryData) {
+            foreach ($categoryData['names'] as $fullName) {
+                // Parse name into first and last name
+                $nameParts = explode(' ', trim($fullName));
+                $lastName = array_pop($nameParts);
+                $firstName = implode(' ', $nameParts);
+
+                // Get random community from Samar/Leyte
+                $community = $communities->random();
+
+                // Determine age based on category
+                $ageRange = $categoryData['age_range'];
+                $age = rand($ageRange[0], $ageRange[1]);
+                $dateOfBirth = Carbon::now()->subYears($age)->subDays(rand(1, 365));
+
+                // Determine monthly income
+                $incomeRange = $categoryData['monthly_income_range'];
+                $monthlyIncome = rand($incomeRange[0], $incomeRange[1]);
+
+                // Create beneficiary with ONE program only
+                Beneficiary::updateOrCreate(
+                    [
+                        'first_name' => $firstName,
+                        'last_name' => $lastName,
+                    ],
+                    [
+                        'date_of_birth' => $dateOfBirth,
+                        'age' => $age,
+                        'gender' => $this->guessGender($firstName),
+                        'email' => strtolower(str_replace(' ', '.', $firstName . '.' . $lastName)) . '@lnu.edu.ph',
+                        'phone' => '09' . rand(100000000, 999999999),
+                        'address' => $community->address ?? $community->municipality,
+                        'barangay' => $community->name,
+                        'municipality' => $community->municipality,
+                        'province' => $community->province,
+                        'community_id' => $community->id,
+                        'program_ids' => json_encode([$categoryData['program_id']]), // ONE program only
+                        'beneficiary_category' => $categoryData['category'],
+                        'monthly_income' => $monthlyIncome,
+                        'occupation' => $categoryData['occupation'],
+                        'educational_attainment' => $categoryData['education'],
+                        'marital_status' => $age < 25 ? 'Single' : ($age < 35 ? 'Married' : 'Married'),
+                        'number_of_dependents' => $age < 25 ? 0 : rand(1, 4),
+                        'status' => 'active',
+                        'notes' => 'Beneficiary for ' . $categoryData['category'] . ' in ' . ($categoryData['program_id'] === $taraBasa->id ? 'Tara, Basa!' : 'PURPPLE') . ' program.',
+                        'created_by' => $creatorId,
+                        'updated_by' => $creatorId,
+                    ]
+                );
             }
+        }
 
-            $data['community_id'] = $community->id;
-            $data['created_by'] = $creatorId;
-            $data['updated_by'] = $creatorId;
+        // Buffer names (111-125) - kept for future enrollment or as inactive
+        $bufferNames = array_slice($allNames, 110, 15);
+        foreach ($bufferNames as $fullName) {
+            $nameParts = explode(' ', trim($fullName));
+            $lastName = array_pop($nameParts);
+            $firstName = implode(' ', $nameParts);
+            $community = $communities->random();
 
-            // Randomly assign 1-2 programs to this beneficiary
-            $assignedPrograms = $programs->random(rand(1, 2))->pluck('id')->toArray();
-            $data['program_ids'] = json_encode($assignedPrograms);
-
-            // Create the beneficiary
             Beneficiary::updateOrCreate(
                 [
-                    'first_name' => $data['first_name'],
-                    'last_name' => $data['last_name'],
-                    'date_of_birth' => $data['date_of_birth'],
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
                 ],
-                $data
+                [
+                    'date_of_birth' => Carbon::now()->subYears(rand(20, 50))->subDays(rand(1, 365)),
+                    'age' => rand(20, 50),
+                    'gender' => $this->guessGender($firstName),
+                    'email' => strtolower(str_replace(' ', '.', $firstName . '.' . $lastName)) . '@lnu.edu.ph',
+                    'phone' => '09' . rand(100000000, 999999999),
+                    'address' => $community->address ?? $community->municipality,
+                    'barangay' => $community->name,
+                    'municipality' => $community->municipality,
+                    'province' => $community->province,
+                    'community_id' => $community->id,
+                    'program_ids' => json_encode([]),
+                    'beneficiary_category' => 'Community Beneficiary',
+                    'monthly_income' => rand(10000, 25000),
+                    'occupation' => 'Undetermined',
+                    'educational_attainment' => 'High School',
+                    'marital_status' => 'Single',
+                    'number_of_dependents' => 0,
+                    'status' => 'inactive',
+                    'notes' => 'Buffer beneficiary - Not yet assigned to any program.',
+                    'created_by' => $creatorId,
+                    'updated_by' => $creatorId,
+                ]
             );
         }
 
-        $this->command->info('BeneficiarySeeder completed successfully! Created ' . count($beneficiaryData) . ' beneficiary records.');
+        $this->command->info('BeneficiarySeeder completed successfully!');
+        $this->command->info('✓ Created 125 beneficiaries (110 active, 15 buffer)');
+        $this->command->info('  - Tara, Basa!: 85 beneficiaries');
+        $this->command->info('  - PURPPLE: 25 beneficiaries');
+        $this->command->info('✓ All beneficiaries linked to ONE program only');
+        $this->command->info('✓ All from Samar/Leyte communities');
+    }
+
+    /**
+     * Guess gender based on first name
+     */
+    private function guessGender($firstName)
+    {
+        $maleEndings = ['o', 'e', 'n', 't', 'r', 'd'];
+        $femaleEndings = ['a', 'ie', 'a', 'lyn', 'dy', 'ia', 'ine'];
+
+        $lastChar = strtolower(substr($firstName, -1));
+        $lastTwoChars = strtolower(substr($firstName, -2));
+
+        // Check if name is typically female
+        if (in_array($lastTwoChars, $femaleEndings) || in_array($lastChar, $femaleEndings)) {
+            return 'female';
+        }
+
+        // Common female names
+        $femaleNames = ['Maria', 'Maria Fe', 'Althea', 'Samantha', 'Princess', 'Sofia', 'Andrea', 'Chloe', 'Nathalie', 'Jasmine'];
+        if (in_array($firstName, $femaleNames)) {
+            return 'female';
+        }
+
+        return 'male';
     }
 }
