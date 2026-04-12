@@ -31,13 +31,6 @@ class DatabaseSeeder extends Seeder
             'role' => 'secretary',
         ]);
 
-        // Create test user
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => 'password',
-        ]);
-
         // Call extension program seeder
         $this->call(ExtensionProgramSeeder::class);
 
