@@ -36,23 +36,13 @@ class ExtensionProgramSeeder extends Seeder
             'Professor'
         );
 
-        // Create communities if they don't exist
-        $communities1 = [
-            ['name' => 'Barangay San Juan', 'municipality' => 'Quezon City', 'province' => 'National Capital Region'],
-            ['name' => 'Barangay Diliman', 'municipality' => 'Quezon City', 'province' => 'National Capital Region'],
-            ['name' => 'Barangay Tondo', 'municipality' => 'Manila', 'province' => 'National Capital Region'],
-            ['name' => 'Barangay Ermita', 'municipality' => 'Manila', 'province' => 'National Capital Region'],
-        ];
-
-        $communities2 = [
-            ['name' => 'Palo National High School Area', 'municipality' => 'Palo', 'province' => 'Leyte'],
-            ['name' => 'Cogon Elementary School Area', 'municipality' => 'Cogon', 'province' => 'Leyte'],
-            ['name' => 'Barangay Maharlika', 'municipality' => 'Palo', 'province' => 'Leyte'],
-            ['name' => 'Barangay San Ricardo', 'municipality' => 'Palo', 'province' => 'Leyte'],
-        ];
-
-        $createdCommunities1 = $this->createCommunitiesIfNotExist($communities1);
-        $createdCommunities2 = $this->createCommunitiesIfNotExist($communities2);
+        // Get existing Samar/Leyte communities created by SchoolAndCommunitySeeder
+        $taraBasaCommunities = Community::whereIn('municipality', ['Tacloban City', 'Basey', 'Santa Rita'])->get();
+        
+        if ($taraBasaCommunities->isEmpty()) {
+            $this->command->warn('No Samar/Leyte communities found. Please run SchoolAndCommunitySeeder first.');
+            return;
+        }
 
         // Create Program 1: Tara, Basa! Tutoring Program
         $program1 = ExtensionProgram::firstOrCreate(
@@ -95,11 +85,6 @@ class ExtensionProgramSeeder extends Seeder
             ]
         );
 
-        // Attach communities to Program 1
-        foreach ($createdCommunities1 as $community) {
-            $program1->communities()->syncWithoutDetaching($community->id);
-        }
-
         // Create Program 2: PURPPLE Extension Project
         $program2 = ExtensionProgram::firstOrCreate(
             ['title' => 'PURPPLE Extension Project'],
@@ -140,8 +125,9 @@ class ExtensionProgramSeeder extends Seeder
             ]
         );
 
-        // Attach communities to Program 2
-        foreach ($createdCommunities2 as $community) {
+        // Attach all Samar/Leyte communities to both programs
+        foreach ($taraBasaCommunities as $community) {
+            $program1->communities()->syncWithoutDetaching($community->id);
             $program2->communities()->syncWithoutDetaching($community->id);
         }
 
@@ -178,51 +164,5 @@ class ExtensionProgramSeeder extends Seeder
             'user' => $user,
             'faculty' => $faculty,
         ];
-    }
-
-    /**
-     * Create communities if not exist
-     */
-    private function createCommunitiesIfNotExist($communitiesData)
-    {
-        $created = [];
-
-        foreach ($communitiesData as $data) {
-            $community = Community::firstOrCreate(
-                ['name' => $data['name'], 'municipality' => $data['municipality']],
-                [
-                    'province' => $data['province'],
-                    'status' => 'active',
-                    'contact_person' => $this->generateContactPerson(),
-                    'contact_number' => $this->generatePhoneNumber(),
-                    'email' => strtolower(str_replace(' ', '.', $data['name'])) . '@lgu.gov.ph',
-                    'address' => $data['municipality'] . ', ' . $data['province'],
-                    'description' => 'Community partner for LNU extension programs.',
-                ]
-            );
-
-            $created[] = $community;
-        }
-
-        return $created;
-    }
-
-    /**
-     * Generate random contact person names
-     */
-    private function generateContactPerson()
-    {
-        $firstNames = ['Maria', 'Juan', 'Rosa', 'Carlos', 'Ana', 'Miguel', 'Josefina', 'Antonio'];
-        $lastNames = ['Santos', 'Cruz', 'Garcia', 'Lopez', 'Martinez', 'Reyes', 'Dela Cruz', 'Fernandez'];
-
-        return $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)];
-    }
-
-    /**
-     * Generate random Philippine phone numbers
-     */
-    private function generatePhoneNumber()
-    {
-        return '+63' . rand(900, 999) . '-' . rand(100, 999) . '-' . rand(1000, 9999);
     }
 }
