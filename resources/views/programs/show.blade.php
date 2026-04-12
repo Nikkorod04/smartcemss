@@ -98,25 +98,12 @@
                 <!-- Communities -->
                 @if ($program->communities->count() > 0)
                 <x-card>
-                    <h2 class="text-xl font-semibold text-lnu-blue mb-4">Partner Communities</h2>
-                    <div class="space-y-3">
+                    <h2 class="text-xl font-semibold text-lnu-blue mb-4">Partner Communities ({{ $program->communities->count() }})</h2>
+                    <div class="flex flex-wrap gap-2">
                         @foreach ($program->communities as $community)
-                        <div class="flex items-start gap-3 pb-3 border-b border-gray-200 last:border-b-0">
-                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-lnu-blue" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="font-semibold text-gray-900">{{ $community->name }}</p>
-                                <p class="text-sm text-gray-600">
-                                    {{ $community->municipality }}, {{ $community->province }}
-                                </p>
-                                @if ($community->contact_person)
-                                <p class="text-sm text-gray-600">Contact: {{ $community->contact_person }}</p>
-                                @endif
-                            </div>
-                        </div>
+                        <span class="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-full hover:bg-blue-200 transition">
+                            {{ $community->name }}
+                        </span>
                         @endforeach
                     </div>
                 </x-card>
