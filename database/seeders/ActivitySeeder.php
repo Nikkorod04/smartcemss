@@ -30,127 +30,200 @@ class ActivitySeeder extends Seeder
             return;
         }
 
-        // Sample activities data
-        $activitiesData = [
+        // Get programs by title
+        $taraBasaProgram = $programs->where('title', 'Tara, Basa! Tutoring Program')->first();
+        $purppleProgram = $programs->where('title', 'PURPPLE Extension Project')->first();
+
+        // Tara, Basa Activities (April 16-20 pending, May 18 & 20 pending)
+        $taraBasaActivities = [
             [
-                'extension_program_id' => $programs->first()->id,
-                'title' => 'Week 1: Tutoring Session - Reading Foundation',
-                'description' => 'First week of intensive reading sessions focusing on phonetics and letter recognition. Students learn basic phonetic patterns and practice word formation.',
-                'actual_start_date' => Carbon::create(2025, 4, 15),
-                'actual_end_date' => Carbon::create(2025, 4, 19),
-                'venue' => 'Barangay San Juan Community Center',
-                'status' => 'completed',
-                'notes' => 'Successfully completed with 85% attendance rate. Students showed significant improvement in letter recognition.',
-                'allocated_budget' => 50000,
-            ],
-            [
-                'extension_program_id' => $programs->first()->id,
-                'title' => 'Week 2: Tutoring Session - Sight Words',
-                'description' => 'Introduction to common sight words and simple sentence formation. Students practice reading short sentences with familiar words.',
-                'actual_start_date' => Carbon::create(2025, 4, 22),
-                'actual_end_date' => Carbon::create(2025, 4, 26),
-                'venue' => 'Barangay Diliman Elementary School',
-                'status' => 'completed',
-                'notes' => 'Good progress observed. All students able to read at least 10 sight words by end of week.',
-                'allocated_budget' => 50000,
-            ],
-            [
-                'extension_program_id' => $programs->first()->id,
-                'title' => 'Week 3: Tutoring Session - Comprehension Building',
-                'description' => 'Focus on reading comprehension through guided reading sessions. Students answer questions about short stories to develop understanding.',
-                'actual_start_date' => Carbon::create(2025, 5, 1),
-                'actual_end_date' => Carbon::create(2025, 5, 5),
-                'venue' => 'Barangay Tondo Community Center',
-                'status' => 'ongoing',
-                'notes' => 'Currently in progress. Observing good engagement from students.',
-                'allocated_budget' => 50000,
-            ],
-            [
-                'extension_program_id' => $programs->first()->id,
-                'title' => 'Parent Engagement Session - Reading at Home',
-                'description' => 'Nanay-Tatay session to teach parents strategies for supporting reading development at home. Emphasis on creating reading-friendly environments.',
-                'actual_start_date' => Carbon::create(2025, 5, 10),
-                'actual_end_date' => Carbon::create(2025, 5, 10),
-                'venue' => 'Barangay San Juan Community Hall',
+                'extension_program_id' => $taraBasaProgram->id,
+                'title' => 'Capbuilding Day 1: Program Overview',
+                'description' => 'First day of capacity-building workshops focusing on program overview, objectives, and expected outcomes for all participants (college tutors, YDWs, and facilitators).',
+                'actual_start_date' => Carbon::create(2026, 4, 16),
+                'actual_end_date' => Carbon::create(2026, 4, 16),
+                'venue' => 'LNU College of Education Auditorium',
                 'status' => 'pending',
-                'notes' => 'Scheduled for next month. Preparing parent orientation materials.',
-                'allocated_budget' => 25000,
+                'notes' => 'Scheduled capacity-building session. All 85 beneficiaries expected to attend.',
+                'allocated_budget' => 75000,
             ],
             [
-                'extension_program_id' => $programs->last()->id,
-                'title' => 'Project Kickoff Meeting - PURPPLE Initiative',
-                'description' => 'Official launch and planning meeting for PURPPLE extension project. Teams assigned and responsibilities clarified.',
-                'actual_start_date' => Carbon::create(2025, 3, 1),
-                'actual_end_date' => Carbon::create(2025, 3, 1),
-                'venue' => 'LNU Main Conference Room',
-                'status' => 'completed',
-                'notes' => 'All stakeholders present. Project timeline finalized.',
-                'allocated_budget' => 15000,
+                'extension_program_id' => $taraBasaProgram->id,
+                'title' => 'Capbuilding Day 2: Pedagogical Foundations and Learner Diversity',
+                'description' => 'Second day focusing on pedagogical foundations, understanding diverse learners, and differentiated instruction strategies.',
+                'actual_start_date' => Carbon::create(2026, 4, 17),
+                'actual_end_date' => Carbon::create(2026, 4, 17),
+                'venue' => 'LNU College of Education Auditorium',
+                'status' => 'pending',
+                'notes' => 'Scheduled capacity-building session. All 85 beneficiaries expected to attend.',
+                'allocated_budget' => 75000,
             ],
             [
-                'extension_program_id' => $programs->last()->id,
-                'title' => 'Community Consultation - Needs Assessment',
-                'description' => 'Community consultation meeting to conduct needs assessment and identify priority areas for the PURPPLE project.',
-                'actual_start_date' => Carbon::create(2025, 3, 15),
-                'actual_end_date' => Carbon::create(2025, 3, 15),
-                'venue' => 'Palo Municipal Hall',
-                'status' => 'completed',
-                'notes' => 'Attended by 50+ community members. Key issues identified and documented.',
-                'allocated_budget' => 20000,
+                'extension_program_id' => $taraBasaProgram->id,
+                'title' => 'Capbuilding Day 3: Assessment Tools and Enhanced Guidebooks',
+                'description' => 'Third day covering assessment tools, evaluation methods, and enhanced guidebook usage for effective tutoring delivery.',
+                'actual_start_date' => Carbon::create(2026, 4, 18),
+                'actual_end_date' => Carbon::create(2026, 4, 18),
+                'venue' => 'LNU College of Education Auditorium',
+                'status' => 'pending',
+                'notes' => 'Scheduled capacity-building session. All 85 beneficiaries expected to attend.',
+                'allocated_budget' => 75000,
+            ],
+            [
+                'extension_program_id' => $taraBasaProgram->id,
+                'title' => 'Capbuilding Day 4: Hands-on Application and Return Demonstrations',
+                'description' => 'Fourth day featuring hands-on applications of learned concepts and return demonstrations where participants practice teaching techniques.',
+                'actual_start_date' => Carbon::create(2026, 4, 19),
+                'actual_end_date' => Carbon::create(2026, 4, 19),
+                'venue' => 'LNU College of Education Auditorium',
+                'status' => 'pending',
+                'notes' => 'Scheduled capacity-building session. All 85 beneficiaries expected to attend.',
+                'allocated_budget' => 75000,
+            ],
+            [
+                'extension_program_id' => $taraBasaProgram->id,
+                'title' => 'Capbuilding Day 5: Deployment Readiness and Final Evaluation',
+                'description' => 'Fifth day focusing on deployment readiness, logistical preparations, final evaluation of learning, and program rollout guidelines.',
+                'actual_start_date' => Carbon::create(2026, 4, 20),
+                'actual_end_date' => Carbon::create(2026, 4, 20),
+                'venue' => 'LNU College of Education Auditorium',
+                'status' => 'pending',
+                'notes' => 'Scheduled capacity-building session. All 85 beneficiaries expected to attend.',
+                'allocated_budget' => 75000,
+            ],
+            [
+                'extension_program_id' => $taraBasaProgram->id,
+                'title' => 'Culminating Activities',
+                'description' => 'Grand culminating activity celebrating the achievements of the Tara, Basa! program with certificate awarding, recognition of outstanding participants, and informal fellowship.',
+                'actual_start_date' => Carbon::create(2026, 5, 18),
+                'actual_end_date' => Carbon::create(2026, 5, 18),
+                'venue' => 'LNU Main Gymnasium',
+                'status' => 'pending',
+                'notes' => 'Scheduled culminating event. Expected attendance: all 85 beneficiaries and program partners.',
+                'allocated_budget' => 100000,
+            ],
+            [
+                'extension_program_id' => $taraBasaProgram->id,
+                'title' => 'Cash-for-Work (CFW) Payout',
+                'description' => 'Distribution of cash allowances to college tutors, Youth Development Workers, and parent participants as compensation for program participation.',
+                'actual_start_date' => Carbon::create(2026, 5, 20),
+                'actual_end_date' => Carbon::create(2026, 5, 20),
+                'venue' => 'LNU Finance Office',
+                'status' => 'pending',
+                'notes' => 'Scheduled payout. Expected beneficiaries: All 85 participants receiving cash allowances.',
+                'allocated_budget' => 500000,
             ],
         ];
 
-        // Create activities
-        foreach ($activitiesData as $data) {
+        // PURPPLE Activities (March 23-25, April 6 - all completed)
+        $purppleActivities = [
+            [
+                'extension_program_id' => $purppleProgram->id,
+                'title' => 'Capacity-Building & Mentoring',
+                'description' => 'Initial capacity-building workshop and one-on-one mentoring sessions for teacher participants focusing on research competencies and scholarly writing foundations.',
+                'actual_start_date' => Carbon::create(2026, 3, 23),
+                'actual_end_date' => Carbon::create(2026, 3, 23),
+                'venue' => 'Palo National High School Conference Room',
+                'status' => 'completed',
+                'notes' => 'Successfully completed with 24 of 25 teacher participants attending. High engagement observed.',
+                'allocated_budget' => 60000,
+            ],
+            [
+                'extension_program_id' => $purppleProgram->id,
+                'title' => 'Seminar-Workshops',
+                'description' => 'Series of seminar-workshops covering research methodologies, data collection techniques, and scholarly article writing for publication.',
+                'actual_start_date' => Carbon::create(2026, 3, 24),
+                'actual_end_date' => Carbon::create(2026, 3, 24),
+                'venue' => 'Palo National High School Convention Center',
+                'status' => 'completed',
+                'notes' => 'Attended by 23 of 25 teacher participants. Resource materials distributed. Positive feedback received.',
+                'allocated_budget' => 80000,
+            ],
+            [
+                'extension_program_id' => $purppleProgram->id,
+                'title' => 'Research Production & Publication',
+                'description' => 'Guided research production sessions where teachers conduct collaborative research projects and prepare manuscripts for submission to academic journals.',
+                'actual_start_date' => Carbon::create(2026, 3, 25),
+                'actual_end_date' => Carbon::create(2026, 3, 25),
+                'venue' => 'Cogon Elementary School Multi-purpose Hall',
+                'status' => 'completed',
+                'notes' => 'Research teams formed and project proposals finalized. 22 participants actively involved in research planning.',
+                'allocated_budget' => 70000,
+            ],
+            [
+                'extension_program_id' => $purppleProgram->id,
+                'title' => 'Community Engagement',
+                'description' => 'Community engagement activity where teacher-participants share their acquired research and publication skills with colleagues in their respective schools, fostering cascading knowledge transfer.',
+                'actual_start_date' => Carbon::create(2026, 4, 6),
+                'actual_end_date' => Carbon::create(2026, 4, 6),
+                'venue' => 'Palo National High School & Cogon Elementary School',
+                'status' => 'completed',
+                'notes' => 'Community dissemination completed. Cascading training model initiated with peer educators from both partner schools.',
+                'allocated_budget' => 50000,
+            ],
+        ];
+
+        // Merge all activities
+        $allActivities = array_merge($taraBasaActivities, $purppleActivities);
+
+        // Create activities with faculty assignments and attendance
+        foreach ($allActivities as $data) {
             $activity = Activity::create($data);
 
-            // Attach 1-2 random faculties (limited by available faculties)
+            // Attach 1-2 random faculties
             $facultyCount = min(2, $faculties->count());
             $selectedFaculties = $faculties->random($facultyCount)->pluck('id')->toArray();
             $activity->faculties()->attach($selectedFaculties);
 
-            // Create attendance records for completed/ongoing activities
-            if (in_array($data['status'], ['completed', 'ongoing'])) {
-                $this->createAttendanceRecords($activity, $beneficiaries, $data['actual_start_date'], $data['actual_end_date']);
+            // Create realistic attendance records for completed activities only
+            if ($data['status'] === 'completed') {
+                $this->createAttendanceRecords($activity, $beneficiaries, $data['extension_program_id']);
             }
         }
 
         $this->command->info('ActivitySeeder completed successfully!');
+        $this->command->info('✓ Tara, Basa! Program: 7 activities (5 pending capbuilding, 1 pending culminating, 1 pending CFW payout)');
+        $this->command->info('✓ PURPPLE Extension Project: 4 activities (all completed)');
     }
 
     /**
-     * Create sample attendance records for an activity
+     * Create realistic attendance records for an activity (completed activities only)
      */
-    private function createAttendanceRecords($activity, $beneficiaries, $startDate, $endDate)
+    private function createAttendanceRecords($activity, $allBeneficiaries, $programId)
     {
-        // Select 8-12 beneficiaries to mark attendance for
-        $selectedBeneficiaries = $beneficiaries->random(min(10, $beneficiaries->count()));
-        
-        // For each beneficiary, create attendance records for each day
+        // Get beneficiaries belonging to this program
+        $programBeneficiaries = $allBeneficiaries->filter(function ($beneficiary) use ($programId) {
+            return $beneficiary->extensionPrograms->contains('id', $programId);
+        });
+
+        if ($programBeneficiaries->isEmpty()) {
+            return;
+        }
+
+        // Select 70-90% of available beneficiaries realistically (some always miss)
+        $attendanceRate = rand(70, 90);
+        $attendeeCount = max(1, intdiv($programBeneficiaries->count() * $attendanceRate, 100));
+        $selectedBeneficiaries = $programBeneficiaries->random($attendeeCount);
+
+        // Create attendance record for the single activity day
         foreach ($selectedBeneficiaries as $beneficiary) {
-            $currentDate = $startDate->copy();
-            
-            while ($currentDate <= $endDate) {
-                // 90% chance of present, 7% absent, 3% excused
-                $rand = rand(1, 100);
-                if ($rand <= 90) {
-                    $status = 'present';
-                } elseif ($rand <= 97) {
-                    $status = 'absent';
-                } else {
-                    $status = 'excused';
-                }
-
-                Attendance::create([
-                    'activity_id' => $activity->id,
-                    'beneficiary_id' => $beneficiary->id,
-                    'attendance_date' => $currentDate,
-                    'status' => $status,
-                    'remarks' => $status === 'absent' ? 'Did not attend' : null,
-                ]);
-
-                $currentDate->addDay();
+            // 85% present, 10% absent, 5% excused
+            $rand = rand(1, 100);
+            if ($rand <= 85) {
+                $status = 'present';
+            } elseif ($rand <= 95) {
+                $status = 'absent';
+            } else {
+                $status = 'excused';
             }
+
+            Attendance::create([
+                'activity_id' => $activity->id,
+                'beneficiary_id' => $beneficiary->id,
+                'attendance_date' => $activity->actual_start_date,
+                'status' => $status,
+                'remarks' => $status === 'absent' ? 'Did not attend' : null,
+            ]);
         }
     }
 }
