@@ -1,4 +1,4 @@
-<x-admin-layout header="Create Community">
+<x-admin-layout header="Create School or Community">
     <div class="max-w-full">
         <form method="POST" action="{{ route('communities.store') }}" class="space-y-6">
             @csrf
@@ -7,8 +7,8 @@
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                 <!-- Header -->
                 <div class="bg-lnu-blue px-8 py-6">
-                    <h1 class="text-3xl font-bold text-white">Add New Community</h1>
-                    <p class="text-blue-100 mt-1">Register a new community for extension programs</p>
+                    <h1 class="text-3xl font-bold text-white">Add New School or Community</h1>
+                    <p class="text-blue-100 mt-1">Register a new school or community for extension programs</p>
                 </div>
 
                 <!-- Form Content -->
@@ -23,7 +23,7 @@
                         <div class="space-y-5">
                             <!-- Name -->
                             <div>
-                                <x-input-label for="name" :value="__('Community Name')" class="font-semibold text-gray-800 block mb-2" />
+                                <x-input-label for="name" :value="__('School or Community Name')" class="font-semibold text-gray-800 block mb-2" />
                                 <x-text-input id="name" class="block w-full input-field" type="text" name="name" 
                                     :value="old('name')" placeholder="e.g., Barangay San Juan" required />
                                 <x-input-error :messages="$errors->get('name')" class="mt-1" />
@@ -115,7 +115,7 @@
                         </div>
                         
                         <div>
-                            <x-input-label for="status" :value="__('Community Status')" class="font-semibold text-gray-800 block mb-2" />
+                            <x-input-label for="status" :value="__('School or Community Status')" class="font-semibold text-gray-800 block mb-2" />
                             <select id="status" name="status" class="block w-full input-field rounded-lg border border-gray-300" required>
                                 <option value="active" {{ old('status', 'active') == 'active' ? 'selected' : '' }}>Active</option>
                                 <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>

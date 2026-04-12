@@ -1,4 +1,4 @@
-<x-admin-layout header="Communities">
+<x-admin-layout header="Schools & Communities">
     <div class="bg-white rounded-lg shadow-lg -mx-6 -my-8 md:-mx-8 md:-my-8 p-6 md:p-8 space-y-6">
 
         <!-- Search and Filter -->
@@ -38,7 +38,7 @@
                 <table class="w-full">
                     <thead class="bg-gray-100 border-b border-gray-300">
                         <tr>
-                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Community Name</th>
+                            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">School or Community Name</th>
                             <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Location</th>
                             <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Contact Person</th>
                             <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Contact Number</th>

@@ -1,4 +1,4 @@
-<x-admin-layout header="Community Details">
+<x-admin-layout header="School or Community Details">
     <div class="bg-white rounded-lg shadow-lg -mx-6 -my-8 md:-mx-8 md:-my-8 p-6 md:p-8 space-y-6">
         <!-- Header with Actions -->
         <div class="flex items-center justify-between">
