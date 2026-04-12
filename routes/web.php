@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('programs', ProgramController::class);
     Route::get('/programs-search', [ProgramController::class, 'search'])->name('programs.search');
     Route::get('/programs-filter/{status}', [ProgramController::class, 'filterByStatus'])->name('programs.filter');
+    Route::get('/programs/{program}/budget-breakdown', [ProgramController::class, 'budgetBreakdownReport'])->name('programs.budget-breakdown');
 
     // Community routes
     Route::resource('communities', CommunityController::class);

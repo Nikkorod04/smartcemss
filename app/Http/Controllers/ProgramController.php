@@ -337,4 +337,47 @@ class ProgramController extends Controller
 
         return view('programs.index', compact('programs'));
     }
+
+    /**
+     * Display budget breakdown report for a program
+     */
+    public function budgetBreakdownReport(ExtensionProgram $program)
+    {
+        if (auth()->user()->role !== 'director' && auth()->user()->role !== 'secretary') {
+            abort(403, 'Unauthorized');
+        }
+
+        $program->load('activities.budgetUtilizations');
+
+        // Calculate program-level totals
+        $programAllocatedBudget = $program->allocated_budget;
+        $programTotalSpent = 0;
+        $activityBreakdown = [];
+
+        foreach ($program->activities as $activity) {
+            $allocatedBudget = $activity->allocated_budget;
+            $totalSpent = $activity->budgetUtilizations->sum('amount');
+            $remainingBudget = max(0, $allocatedBudget - $totalSpent);
+            $spentPercentage = $allocatedBudget > 0 ? ($totalSpent / $allocatedBudget) * 100 : 0;
+            $isWarning = $spentPercentage >= 85;
+
+            $activityBreakdown[] = [
+                'activity' => $activity,
+                'allocated' => $allocatedBudget,
+                'spent' => $totalSpent,
+                'remaining' => $remainingBudget,
+                'percentage' => $spentPercentage,
+                'isWarning' => $isWarning,
+            ];
+
+            $programTotalSpent += $totalSpent;
+        }
+
+        // Sort by percentage spent (highest first)
+        usort($activityBreakdown, function ($a, $b) {
+            return $b['percentage'] <=> $a['percentage'];
+        });
+
+        return view('programs.budget-breakdown', compact('program', 'activityBreakdown', 'programAllocatedBudget', 'programTotalSpent'));
+    }
 }
