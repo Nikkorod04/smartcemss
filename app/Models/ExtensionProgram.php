@@ -93,4 +93,14 @@ class ExtensionProgram extends Model
 
         return $totalActivities > 0 ? round(($completedActivities / $totalActivities) * 100) : 0;
     }
-}
+
+    /**
+     * Decode partners JSON if stored as string
+     */
+    public function getPartnersAttribute($value)
+    {
+        if (is_string($value)) {
+            return json_decode($value, true) ?? [];
+        }
+        return $value ?? [];
+    }
