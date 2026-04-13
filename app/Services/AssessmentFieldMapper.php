@@ -345,15 +345,32 @@ class AssessmentFieldMapper
             if (preg_match($pattern, $text, $matches)) {
                 $value = trim($matches[1]);
                 
-                // Clean up the value: remove section headers, unwanted chars
+                // Comprehensive cleanup of OCR artifacts and form markers
+                // Remove image markers like "BAGONG PILIPINAS --- Image 2 ---"
+                $value = preg_replace('/BAGONG\s+PILIPINAS\s*---\s*Image\s+\d+\s*---/ims', '', $value);
+                
+                // Remove form header repetitions
+                $value = preg_replace('/Leyte\s+Normal\s+University.*?Community\s+Needs\s+Assessment.*?Form\s*\(.*?\)/ims', '', $value);
+                
+                // Remove section breaks and markers
                 $value = str_replace(['| SECTIONBREAK |', '?', '*', '☐', '☑', '○', '●'], '', $value);
-                $value = trim($value);
+                
+                // Remove common OCR noise: extra spaces, newlines, multiple spaces
+                $value = preg_replace('/\s+/', ' ', $value);
                 
                 // Remove common prefixes that are UI elements, not data
                 $value = preg_replace('/^(if yes|if no|if applicable)[,\s]+/i', '', $value);
+                
+                // Clean up trailing form info
+                $value = preg_replace('/EXTENSION\s+Leyte.*$/ims', '', $value);
+                
+                // Trim and final cleanup
                 $value = trim($value);
                 
                 if (!empty($value)) {
+                    // Correct common OCR typos
+                    $value = $this->correctOCRTypos($value, $fieldName);
+                    
                     // Process the value based on field type
                     $processedValue = $this->processExtractedValue($fieldName, [$value], 0);
                     
@@ -373,6 +390,57 @@ class AssessmentFieldMapper
         }
         
         return $mappedFields;
+    }
+    
+    /**
+     * Correct common OCR typos and errors
+     */
+    protected function correctOCRTypos(string $value, string $fieldName): string
+    {
+        // Common OCR typos mapping
+        $corrections = [
+            // Civil status corrections
+            '/\bSIPGLE\b/i' => 'Single',
+            '/\bSINGLE\b/i' => 'Single',
+            '/\bMARRIED\b/i' => 'Married',
+            '/\bWIDOWED\b/i' => 'Widowed',
+            '/\bDIVORCED\b/i' => 'Divorced',
+            
+            // Yes/No corrections
+            '/\bYES\b/i' => 'Yes',
+            '/\bNO\b/i' => 'No',
+            '/\b[Y1]\b/' => 'Yes',  // 1 might be misread as Y
+            '/\b0\b/' => 'No',
+            
+            // Common field corrections
+            '/\bFARMING\b/i' => 'Farming',
+            '/\bFISHING\b/i' => 'Fishing',
+        ];
+        
+        // For civil status fields, ensure proper capitalization
+        if ($fieldName === 'respondent_civil_status') {
+            foreach ($corrections as $pattern => $replacement) {
+                $value = preg_replace($pattern, $replacement, $value);
+            }
+        }
+        
+        // For yes/no fields, normalize to standard format
+        if (in_array($fieldName, ['has_barangay_health_programs', 'keeps_animals', 'available_for_training', 'interested_in_livelihood_training'])) {
+            foreach ($corrections as $pattern => $replacement) {
+                if (in_array($replacement, ['Yes', 'No'])) {
+                    $value = preg_replace($pattern, $replacement, $value);
+                }
+            }
+        }
+        
+        // For rating fields, keep numeric values but clean them
+        if (strpos($fieldName, 'rating') !== false && is_numeric($value)) {
+            // Clamp to 1-5 range
+            $numeric = intval($value);
+            $value = max(1, min(5, $numeric));
+        }
+        
+        return $value;
     }
     
     /**
@@ -458,10 +526,19 @@ class AssessmentFieldMapper
         }
         
         if ($fieldName === 'barangay_service_ratings') {
-            // Extract numeric rating (1-5)
-            foreach ($values as $value) {
-                if (preg_match('/\b([1-5])\b/', $value, $matches)) {
-                    return intval($matches[1]);
+            // Handle both single rating and comma-separated ratings
+            $value = implode(' ', $values);
+            
+            // If we have comma-separated ratings, return as array
+            if (preg_match_all('/\b([1-5])\b/', $value, $matches)) {
+                $ratings = array_map('intval', $matches[1]);
+                // If we got multiple ratings, return them
+                if (count($ratings) > 1) {
+                    return $ratings;
+                }
+                // If single rating
+                if (count($ratings) === 1) {
+                    return $ratings[0];
                 }
             }
             return null;
@@ -469,13 +546,25 @@ class AssessmentFieldMapper
         
         if (in_array($fieldName, $numericFields)) {
             $numValue = null;
-            foreach ($values as $value) {
-                if (preg_match('/\d+/', $value, $matches)) {
-                    $numValue = intval($matches[0]);
-                    break;
-                }
+            $valueText = implode(' ', $values);
+            
+            // Skip if field appears empty
+            if (empty(trim($valueText))) {
+                return null;
             }
-            return $numValue;
+            
+            // Extract numeric value
+            if (preg_match('/\d+/', $valueText, $matches)) {
+                $numValue = intval($matches[0]);
+                
+                // Validate age is reasonable (18-120)
+                if ($fieldName === 'respondent_age' && ($numValue < 18 || $numValue > 120)) {
+                    return null;
+                }
+                
+                return $numValue;
+            }
+            return null;
         }
         
         // Default: single string value (first non-empty)
