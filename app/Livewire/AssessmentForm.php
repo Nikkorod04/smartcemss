@@ -338,176 +338,95 @@ class AssessmentForm extends Component
             });
             
             $result = null;
-            $parser = new AssessmentDocumentParser();
+            $mappedData = [];
+            $mapper = new AssessmentFieldMapper();
             
-            // Handle multiple images: Process individually and merge text
-            if (count($imageFiles) > 1) {
-                \Log::info('Processing ' . count($imageFiles) . ' images individually for OCR');
+            // Handle image files: Convert to PDF and use Google Document AI
+            if (!empty($imageFiles)) {
+                \Log::info('Processing ' . count($imageFiles) . ' images directly with Document AI');
                 
-                // Log all files received
-                foreach ($imageFiles as $idx => $img) {
-                    \Log::info('Image file ' . ($idx + 1), [
-                        'name' => $img->getClientOriginalName(),
-                        'size' => $img->getSize(),
-                        'mime' => $img->getMimeType()
-                    ]);
+                // Convert images to PDF
+                $imageToPdf = new ImageToPdfService();
+                $pdfResult = $imageToPdf->convertImagesToPdf(array_values($imageFiles));
+                
+                if (!$pdfResult['success']) {
+                    $this->importStatus = 'error';
+                    $this->importMessage = 'Failed to convert images to PDF: ' . $pdfResult['error'];
+                    return;
                 }
                 
-                $mergedText = '';
-                $totalConfidence = 0;
-                $confidenceCount = 0;
-                $ocrCount = 0;
+                // Use Document AI directly on the PDF file
+                \Log::info('Sending PDF to Google Document AI', [
+                    'pdf_path' => $pdfResult['path'],
+                    'pdf_exists' => file_exists($pdfResult['path'])
+                ]);
                 
-                // Create a service to process images individually
-                $ocrService = null;
                 try {
-                    $credentialsFile = env('GOOGLE_CREDENTIALS_FILE', 'google-credentials.json');
-                    $credentialsPath = storage_path('app' . DIRECTORY_SEPARATOR . $credentialsFile);
-                    if (file_exists($credentialsPath)) {
-                        $ocrService = new \App\Services\OcrService();
-                    }
+                    $mappedData = $mapper->mapDataToFields([
+                        'file_path' => $pdfResult['path'],
+                        'type' => 'pdf'
+                    ], 'pdf');
+                    
+                    \Log::info('Document AI extraction successful', [
+                        'fields_extracted' => count($mappedData),
+                        'field_names' => array_slice(array_keys($mappedData), 0, 20)
+                    ]);
                 } catch (\Exception $e) {
-                    \Log::warning('OCR service not available for image processing');
+                    $this->importStatus = 'error';
+                    $this->importMessage = 'Document AI processing failed: ' . $e->getMessage();
+                    \Log::error('Document AI error', ['error' => $e->getMessage()]);
+                    return;
                 }
-                
-                foreach ($imageFiles as $index => $imageFile) {
-                    $imageIndex = $index + 1;
-                    \Log::info('Processing image ' . $imageIndex . '/' . count($imageFiles), [
-                        'file' => $imageFile->getClientOriginalName(),
-                        'size' => $imageFile->getSize()
-                    ]);
-                    
-                    if ($ocrService) {
-                        // Use OCR for this image
-                        $ocrResult = $ocrService->extractFromImage($imageFile);
-                        if ($ocrResult['success']) {
-                            \Log::info('Image ' . $imageIndex . ' OCR succeeded', [
-                                'text_length' => strlen($ocrResult['text']),
-                                'text_preview' => substr($ocrResult['text'], 0, 150),
-                                'confidence' => $ocrResult['confidence'] ?? 0
-                            ]);
-                            
-                            $mergedText .= "--- Image $imageIndex ---\n";
-                            $mergedText .= $ocrResult['text'] . "\n\n";
-                            $totalConfidence += $ocrResult['confidence'] ?? 0;
-                            $confidenceCount++;
-                            $ocrCount++;
-                        } else {
-                            \Log::warning('Image ' . $imageIndex . ' OCR failed', [
-                                'error' => $ocrResult['error'] ?? 'unknown',
-                                'file' => $imageFile->getClientOriginalName()
-                            ]);
-                        }
-                    }
-                }
-                
-                if ($ocrCount > 0) {
-                    // Sanitize merged text to ensure valid UTF-8
-                    $sanitizedText = $this->sanitizeUtf8Text($mergedText);
-                    
-                    // Successfully processed images via OCR
-                    $result = [
-                        'success' => true,
-                        'text' => $sanitizedText,
-                        'type' => 'images',
-                        'raw_text' => $sanitizedText,
-                        'ocr_method' => 'google_vision',
-                        'confidence' => $confidenceCount > 0 ? round($totalConfidence / $confidenceCount, 2) : 0
-                    ];
-                    \Log::info('Multi-image OCR complete', [
-                        'images_processed' => $ocrCount,
-                        'merged_text_length' => strlen($sanitizedText),
-                        'merged_text_preview' => substr($sanitizedText, 0, 200),
-                        'confidence' => $result['confidence'],
-                        'images_expected' => count($imageFiles)
-                    ]);
-                } else {
-                    // OCR failed, fall back to PDF conversion
-                    \Log::warning('OCR processing failed for all images, falling back to PDF conversion');
-                    $imageToPdf = new ImageToPdfService();
-                    $pdfResult = $imageToPdf->convertImagesToPdf($imageFiles);
-                    
-                    if (!$pdfResult['success']) {
-                        $this->importStatus = 'error';
-                        $this->importMessage = $pdfResult['error'];
-                        return;
-                    }
-                    
-                    $result = $parser->parseFromPath($pdfResult['path']);
-                }
-            } else if (count($imageFiles) === 1) {
-                // Single image, process directly
-                $result = $parser->parse($imageFiles[0]);
             } else if (!empty($otherFiles)) {
-                // Process first non-image file (PDF, CSV, Excel)
+                // Handle non-image files (PDF, CSV, Excel)
+                $parser = new AssessmentDocumentParser();
                 $result = $parser->parse($otherFiles[0]);
+                
+                if (!$result['success']) {
+                    $this->importStatus = 'error';
+                    $this->importMessage = $result['error'] ?? 'Failed to process file';
+                    return;
+                }
+                
+                $this->ocrMethod = $result['ocr_method'] ?? null;
+                $this->ocrConfidence = $result['confidence'] ?? null;
+                
+                // For non-image files, map the extracted data
+                $mappedData = $mapper->mapDataToFields($result, $result['type']);
             } else {
                 $this->importStatus = 'error';
                 $this->importMessage = 'No valid files to process';
                 return;
             }
 
-            if (!$result['success']) {
+            if (empty($mappedData)) {
                 $this->importStatus = 'error';
-                $this->importMessage = $result['error'] ?? 'Failed to process file';
+                $this->importMessage = 'No data could be extracted from the file';
                 return;
             }
-
-            // Store OCR metadata if available
-            $this->ocrMethod = $result['ocr_method'] ?? null;
-            $this->ocrConfidence = $result['confidence'] ?? null;
-
-            // Map extracted data to form fields
-            $mapper = new AssessmentFieldMapper();
-            $mappedData = $mapper->mapDataToFields($result, $result['type']);
             
             // Sanitize all mapped field values to ensure valid UTF-8
             $mappedData = $this->sanitizeUtf8Array($mappedData);
             
-            // Log extracted text and mapped fields for debugging
-            \Log::info('OCR text extracted', [
-                'text_length' => strlen($result['text'] ?? ''),
-                'text_preview' => substr($result['text'] ?? '', 0, 500)
-            ]);
-            \Log::info('Field mapping complete', [
-                'fields_mapped' => count($mappedData),
-                'field_names' => array_keys($mappedData)
-            ]);
-
-            // Store raw OCR text for display
-            $this->rawOcrText = $result['text'] ?? '';
-            
-            // Store cleaned extracted data (the LLM output or readable version of mappedData)
-            $this->cleanedExtractedData = $mappedData;
-
             // Store imported data for review
             $this->importedData = $mappedData;
             $this->importStatus = 'success';
             
-            // Build detailed success message with OCR info
+            // Build success message
             $imageCount = count($imageFiles);
-            $message = 'File processed successfully!';
-            if ($imageCount > 1) {
-                $message .= " ({$imageCount} images processed)";
-            }
-            $message .= ' Review and confirm the extracted data below.';
-            
-            if ($this->ocrMethod) {
-                $message .= ' ';
-                if (strpos($this->ocrMethod, 'google_vision') !== false) {
-                    $confidenceText = $this->ocrConfidence ? "({$this->ocrConfidence}% confidence)" : '';
-                    $message .= "Extracted via Google Cloud Vision OCR {$confidenceText}";
-                } else {
-                    $message .= "Extracted via {$this->ocrMethod}";
-                }
+            if ($imageCount > 0) {
+                $this->importMessage = "Successfully extracted data from {$imageCount} image(s) using Google Document AI. Review and confirm the extracted data below.";
+            } else {
+                $this->importMessage = 'File processed successfully! Review and confirm the extracted data below.';
             }
             
-            $this->importMessage = $message;
             $this->showImportedDataReview = true;
         } catch (\Exception $e) {
             $this->importStatus = 'error';
             $this->importMessage = 'Error processing files: ' . $e->getMessage();
+            \Log::error('File processing error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
         }
+    }
     }
 
     /**
