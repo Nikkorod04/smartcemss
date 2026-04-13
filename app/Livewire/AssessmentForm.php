@@ -427,7 +427,6 @@ class AssessmentForm extends Component
             \Log::error('File processing error', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
         }
     }
-    }
 
     /**
      * Populate form fields with imported data
