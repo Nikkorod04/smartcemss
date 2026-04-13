@@ -219,7 +219,7 @@ class GoogleDocumentAIService
 
         try {
             foreach ($document->getEntities() as $entity) {
-                $fieldName = $this->normalizeFieldName($entity->getDisplayName());
+                $fieldName = $this->normalizeFieldName($entity->getType());
                 $fieldValue = $this->extractEntityValue($entity);
 
                 if ($fieldName && $fieldValue !== null) {
