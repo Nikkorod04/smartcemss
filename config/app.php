@@ -125,15 +125,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | LLM-Based Form Extraction
+    | Form Extraction Strategy
     |--------------------------------------------------------------------------
     |
-    | Enable Mistral 7B (via Hugging Face) for intelligent PDF form extraction
-    | instead of regex-based extraction. This provides better accuracy but
-    | requires Hugging Face API token.
+    | Choose the strategy for extracting data from uploaded assessment forms:
+    | - 'document_ai': Google Document AI Form Parser (recommended, most accurate)
+    | - 'llm': Mistral 7B with Hugging Face (fallback, less accurate)
+    | - 'regex': Fallback regex-based extraction (not recommended)
     |
     */
 
+    'form_extraction_strategy' => env('FORM_EXTRACTION_STRATEGY', 'document_ai'),
+    'use_document_ai' => env('USE_DOCUMENT_AI', true),
     'use_llm_extraction' => env('USE_LLM_EXTRACTION', false),
 
 ];

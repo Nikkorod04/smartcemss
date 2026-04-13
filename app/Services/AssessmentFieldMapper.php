@@ -7,10 +7,12 @@ use Illuminate\Support\Facades\Log;
 class AssessmentFieldMapper
 {
     protected $llmExtractor;
+    protected $documentAIService;
 
-    public function __construct(LLMFormExtractor $llmExtractor = null)
+    public function __construct(LLMFormExtractor $llmExtractor = null, GoogleDocumentAIService $documentAIService = null)
     {
         $this->llmExtractor = $llmExtractor;
+        $this->documentAIService = $documentAIService;
     }
 
     /**
@@ -24,8 +26,7 @@ class AssessmentFieldMapper
             'sourceType' => $sourceType,
             'extractedDataKeys' => array_keys($extractedData),
             'textLength' => strlen($extractedData['text'] ?? ''),
-            'rawTextLength' => strlen($extractedData['raw_text'] ?? ''),
-            'useLLM' => config('app.use_llm_extraction'),
+            'useDocumentAI' => config('app.use_document_ai'),
         ]);
 
         if ($sourceType === 'excel' || $sourceType === 'csv') {
@@ -33,22 +34,50 @@ class AssessmentFieldMapper
             $firstRow = $extractedData['data'][0] ?? [];
             $mappedFields = $this->mapStructuredData($firstRow);
         } elseif ($sourceType === 'pdf' || $sourceType === 'image' || $sourceType === 'images') {
-            // For unstructured text (PDF/Image), use LLM if enabled
-            $text = $extractedData['text'] ?? $extractedData['raw_text'] ?? '';
+            // For unstructured text (PDF/Image), try extractors in order of preference
             
-            if (config('app.use_llm_extraction') && $this->llmExtractor) {
-                Log::info('Using LLM-based extraction');
+            // Try 1: Google Document AI (if enabled and service available)
+            if (config('app.use_document_ai') && $this->documentAIService) {
+                Log::info('Attempting Document AI extraction');
                 try {
+                    // Document AI expects file path, not raw text
+                    // For this to work, we need the file path from the extraction process
+                    if (isset($extractedData['file_path'])) {
+                        $docAiResult = $this->documentAIService->processDocument($extractedData['file_path']);
+                        if ($docAiResult['success']) {
+                            Log::info('Document AI extraction succeeded');
+                            $mappedFields = $docAiResult['extracted_data'] ?? [];
+                        } else {
+                            Log::warning('Document AI extraction failed', [
+                                'error' => $docAiResult['error'] ?? 'unknown',
+                            ]);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Document AI extraction error', [
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            // Try 2: LLM extraction (fallback if Document AI not available or failed)
+            if (empty($mappedFields) && config('app.use_llm_extraction') && $this->llmExtractor) {
+                Log::info('Falling back to LLM extraction');
+                try {
+                    $text = $extractedData['text'] ?? $extractedData['raw_text'] ?? '';
                     $llmData = $this->llmExtractor->extractFormData($text);
                     $mappedFields = $this->llmExtractor->processLLMOutput($llmData);
                 } catch (\Exception $e) {
-                    Log::error('LLM extraction failed, falling back to regex', [
+                    Log::error('LLM extraction failed', [
                         'error' => $e->getMessage(),
                     ]);
-                    $mappedFields = $this->mapUnstructuredText($text);
                 }
-            } else {
-                Log::info('Using regex-based extraction');
+            }
+
+            // Try 3: Regex extraction (final fallback)
+            if (empty($mappedFields)) {
+                Log::info('Using regex-based extraction (fallback)');
+                $text = $extractedData['text'] ?? $extractedData['raw_text'] ?? '';
                 $mappedFields = $this->mapUnstructuredText($text);
             }
         }

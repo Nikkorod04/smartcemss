@@ -40,4 +40,10 @@ return [
         'model' => env('HF_MODEL', 'mistralai/Mistral-7B-Instruct-v0.1'),
     ],
 
+    'google_docai' => [
+        'project_id' => env('GOOGLE_CLOUD_PROJECT_ID'),
+        'processor_id' => env('GOOGLE_DOCAI_PROCESSOR_ID'),
+        'credentials_file' => env('GOOGLE_DOCAI_CREDENTIALS_FILE', 'google-doc-ai-credentials.json'),
+    ],
+
 ];
