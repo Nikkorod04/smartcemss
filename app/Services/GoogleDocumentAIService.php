@@ -218,6 +218,7 @@ class GoogleDocumentAIService
         $formFields = [];
         $allEntities = [];
         $pageData = [];
+        $pageTexts = [];
 
         try {
             // Extract from entities
@@ -250,13 +251,20 @@ class GoogleDocumentAIService
                 ];
                 
                 // Extract text from blocks (lines, paragraphs, etc)
+                $pageText = '';
                 if ($page->getBlocks()) {
                     foreach ($page->getBlocks() as $block) {
                         $blockText = $this->extractBlockText($block);
                         if ($blockText) {
-                            $pageInfo['text_sample'] = substr($blockText, 0, 100);
+                            $pageText .= $blockText . "\n";
                         }
                     }
+                }
+                
+                if ($pageText) {
+                    $pageTexts[] = trim($pageText);
+                    $pageInfo['text_length'] = strlen($pageText);
+                    $pageInfo['text_sample'] = substr($pageText, 0, 100);
                 }
                 
                 $pageData[] = $pageInfo;
@@ -265,17 +273,67 @@ class GoogleDocumentAIService
             Log::info('GoogleDocumentAIService: All extracted entities', [
                 'total_entities' => count($allEntities),
                 'entities' => $allEntities,
-                'matched_fields' => count($formFields),
+                'matched_fields_from_entities' => count($formFields),
                 'pages_data' => $pageData,
             ]);
+            
+            // FALLBACK: If we got no structured fields, extract text and use regex
+            if (count($formFields) === 0 && !empty($pageTexts)) {
+                Log::info('GoogleDocumentAIService: Falling back to text extraction + regex', [
+                    'page_count' => count($pageTexts),
+                    'total_text_length' => array_sum(array_map('strlen', $pageTexts)),
+                ]);
+                
+                $combinedText = implode("\n", $pageTexts);
+                $formFields = $this->extractFieldsFromText($combinedText);
+                
+                Log::info('GoogleDocumentAIService: Fallback extraction complete', [
+                    'fields_extracted' => count($formFields),
+                    'field_names' => array_keys($formFields),
+                ]);
+            }
         } catch (\Exception $e) {
             Log::warning('GoogleDocumentAIService: Error extracting form data', [
                 'error' => $e->getMessage(),
                 'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
             ]);
         }
 
         return $formFields;
+    }
+
+    /**
+     * Extract fields from raw text using regex patterns
+     */
+    private function extractFieldsFromText(string $text): array
+    {
+        $fields = [];
+        
+        // Regex patterns for common form field patterns
+        $patterns = [
+            'respondent_first_name' => ['/first\s*name\s*[:\-]?\s*([^\n,]+)/im'],
+            'respondent_middle_name' => ['/middle\s*name\s*[:\-]?\s*([^\n,]+)/im'],
+            'respondent_last_name' => ['/last\s*name\s*[:\-]?\s*([^\n,]+)/im'],
+            'respondent_age' => ['/age\s*[:\-]?\s*(\d+)/im'],
+            'respondent_sex' => ['/sex\s*[:\-]?\s*(male|female)/im'],
+            'respondent_civil_status' => ['/civil\s*status\s*[:\-]?\s*([^\n,]+)/im'],
+        ];
+        
+        foreach ($patterns as $fieldName => $patternList) {
+            foreach ($patternList as $pattern) {
+                if (preg_match($pattern, $text, $matches)) {
+                    $value = trim($matches[1]);
+                    if (!empty($value) && $value !== '0') {
+                        $fields[$fieldName] = $value;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return $fields;
     }
 
     /**
