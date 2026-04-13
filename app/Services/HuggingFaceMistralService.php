@@ -155,43 +155,85 @@ class HuggingFaceMistralService
             $fieldDefinitions = $this->getDefaultFieldDefinitions();
         }
 
+        // Clean OCR text before sending to LLM
+        $cleanedOcrText = $this->cleanOcrTextForExtraction($ocrText);
+
         $fieldsJson = json_encode($fieldDefinitions, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
         return <<<PROMPT
 You are a form data extraction expert. Your task is to extract structured data from OCR text of a community needs assessment form.
 
-IMPORTANT INSTRUCTIONS:
-1. Extract ONLY the fields specified below
-2. Remove any image markers like "--- Image X ---" or "BAGONG PILI"
-3. For Yes/No fields, respond with exactly "Yes" or "No"
-4. For rating fields, extract as integers 1-5, NOT comma-separated strings
-5. For array fields (checkboxes), return as JSON array
-6. For empty fields or fields not found, return null
-7. For service ratings with 8 values like "3, 3, 3, 4, 2, 3, 5, 3", parse as array [3,3,3,4,2,3,5,3]
-8. Respond ONLY with valid JSON, no additional text
+CRITICAL INSTRUCTIONS - READ CAREFULLY:
+1. Extract ONLY the fields specified in FIELD DEFINITIONS
+2. REMOVE all image markers: "--- Image X ---", "BAGONG PILI", "BAGONG PILIPINAS", etc.
+3. REMOVE all form artifacts: "EXTENSION", form headers, page markers
+4. For Yes/No fields, respond with EXACTLY "Yes" or "No" - nothing else
+5. For numeric rating fields (1-5), extract ONLY integers in range 1-5
+6. For array fields (checkboxes), ONLY include values that appear on the actual form - do NOT include OCR artifacts or random text
+7. NEVER extract text fragments like "EXTENSION BAGONG PI" or "BAGONG PILI --- Image 4 ---" as field values
+8. If a field is mostly OCR noise/artifacts, set it to empty array [] or null
+9. For empty fields or fields not found, set to null
+10. Respond ONLY with valid JSON, no additional text
+
+ARRAY FIELD RULES (VERY IMPORTANT):
+- preferred_training_days: ONLY extract actual training days if explicitly listed on form
+- security_problems: ONLY extract actual security problems listed, NOT image markers or artifacts
+- All array fields: If you find fragments like "EXTENSION BAGONG", "--- Image ---", or random text, IGNORE them
 
 OCR TEXT FROM FORM:
 ---
-{$ocrText}
+{$cleanedOcrText}
 ---
 
 FIELD DEFINITIONS (extract these fields):
 {$fieldsJson}
 
 RESPONSE FORMAT:
-Return ONLY a valid JSON object matching the field definitions above. Example for your fields:
+Return ONLY a valid JSON object matching the field definitions above. Example:
 {
   "respondent_first_name": "John",
   "respondent_age": 35,
   "has_barangay_health_programs": "Yes",
   "barangay_service_ratings": [3, 3, 3, 4, 2, 3, 5, 3],
-  "security_problems": null,
+  "security_problems": [],
+  "preferred_training_days": ["Monday", "Wednesday"],
   "keeps_animals": "No",
   "general_feedback": 3
 }
 
 Extract and respond:
 PROMPT;
+    }
+
+    /**
+     * Clean OCR text to remove artifacts before sending to LLM
+     * 
+     * @param string $text Raw OCR text
+     * @return string Cleaned text
+     */
+    protected function cleanOcrTextForExtraction(string $text): string
+    {
+        // Remove form headers and repeated structure
+        $text = preg_replace('/Leyte\s+Normal\s+University.*?Community\s+Needs\s+Assessment.*?Form\s*\([^)]*\)/isms', '', $text);
+        
+        // Remove "EXTENSION" markers
+        $text = preg_replace('/EXTENSION\s+[A-Z\s]+/', '', $text);
+        
+        // Remove image markers but keep content
+        $text = preg_replace('/---\s*Image\s+\d+\s*---/', '', $text);
+        
+        // Remove "BAGONG PILIPINAS" and variations
+        $text = preg_replace('/BAGONG\s+[A-Z]+\s+---[^-]*---/i', '', $text);
+        $text = preg_replace('/BAGONG\s+[A-Z]+(?:\s+---)?/i', '', $text);
+        
+        // Remove trailing parentheses without content
+        $text = preg_replace('/\s+\)\s+$/', '', $text);
+        
+        // Normalize whitespace
+        $text = preg_replace('/\s+/', ' ', $text);
+        
+        return trim($text);
+    }
     }
 
     /**

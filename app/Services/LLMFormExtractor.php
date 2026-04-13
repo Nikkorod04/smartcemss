@@ -93,10 +93,18 @@ class LLMFormExtractor
                     continue;
                 }
 
+                // Clean OCR artifacts from array fields
+                if (is_array($value)) {
+                    $value = $this->cleanArrayFieldOfArtifacts($dbField, $value);
+                    if (empty($value)) {
+                        continue;
+                    }
+                }
+
                 // Validate based on field type
                 if (!$this->validateFieldValue($dbField, $value)) {
                     Log::warning("Field validation failed: {$dbField}", [
-                        'value' => $value,
+                        'value' => var_export($value, true),
                     ]);
                     continue;
                 }
@@ -114,6 +122,64 @@ class LLMFormExtractor
         }
 
         return $processedData;
+    }
+
+    /**
+     * Clean OCR artifacts from array field values
+     * Removes image markers, form headers, and other junk that shouldn't be in field values
+     * 
+     * @param string $fieldName Database field name
+     * @param array $values Array of values to clean
+     * @return array Cleaned values, with artifacts removed
+     */
+    protected function cleanArrayFieldOfArtifacts(string $fieldName, array $values): array
+    {
+        // Patterns that indicate OCR artifacts (these should NEVER be field values)
+        $artifactPatterns = [
+            '/EXTENSION\s+BAGONG/i',
+            '/BAGONG\s+PILI/i',
+            '/BAGONG\s+PILIPINAS/i',
+            '/---\s*Image\s+\d+\s*---/i',
+            '/\(F-CES-\d+\)/i',                    // Form codes
+            '/Leyte\s+Normal\s+University/i',     // Form headers
+            '/Community\s+Extension\s+Services/i',
+            '/SECTION\s+[IVX]+:/i',               // Section headers
+            '/^\s*\)\s*$/',                        // Lone closing parens
+            '/^\s*$/',                             // Empty strings
+        ];
+
+        $cleaned = [];
+
+        foreach ($values as $value) {
+            // Make sure it's a string
+            if (!is_string($value)) {
+                continue;
+            }
+
+            $trimmed = trim($value);
+
+            // If empty after trimming, skip
+            if (empty($trimmed)) {
+                continue;
+            }
+
+            // Check if value matches any artifact pattern
+            $isArtifact = false;
+            foreach ($artifactPatterns as $pattern) {
+                if (preg_match($pattern, $trimmed)) {
+                    $isArtifact = true;
+                    Log::debug("Array field artifact detected in {$fieldName}: {$trimmed}");
+                    break;
+                }
+            }
+
+            // Only add if it's NOT an artifact
+            if (!$isArtifact) {
+                $cleaned[] = $trimmed;
+            }
+        }
+
+        return array_unique($cleaned);
     }
 
     /**
