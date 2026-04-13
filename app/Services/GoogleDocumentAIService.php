@@ -217,8 +217,10 @@ class GoogleDocumentAIService
     {
         $formFields = [];
         $allEntities = [];
+        $pageData = [];
 
         try {
+            // Extract from entities
             foreach ($document->getEntities() as $entity) {
                 $type = $entity->getType();
                 $mentionText = $this->extractEntityValue($entity);
@@ -238,18 +240,70 @@ class GoogleDocumentAIService
                 }
             }
             
+            // Also extract from pages (Form Parser data structure)
+            $pageCount = 0;
+            foreach ($document->getPages() as $page) {
+                $pageCount++;
+                $pageInfo = [
+                    'page_number' => $pageCount,
+                    'blocks' => $page->getBlocks() ? count($page->getBlocks()) : 0,
+                ];
+                
+                // Extract text from blocks (lines, paragraphs, etc)
+                if ($page->getBlocks()) {
+                    foreach ($page->getBlocks() as $block) {
+                        $blockText = $this->extractBlockText($block);
+                        if ($blockText) {
+                            $pageInfo['text_sample'] = substr($blockText, 0, 100);
+                        }
+                    }
+                }
+                
+                $pageData[] = $pageInfo;
+            }
+            
             Log::info('GoogleDocumentAIService: All extracted entities', [
                 'total_entities' => count($allEntities),
                 'entities' => $allEntities,
                 'matched_fields' => count($formFields),
+                'pages_data' => $pageData,
             ]);
         } catch (\Exception $e) {
             Log::warning('GoogleDocumentAIService: Error extracting form data', [
                 'error' => $e->getMessage(),
+                'exception' => get_class($e),
             ]);
         }
 
         return $formFields;
+    }
+
+    /**
+     * Extract text from a page block
+     */
+    private function extractBlockText($block): ?string
+    {
+        try {
+            if (method_exists($block, 'getText') && $block->getText()) {
+                return $block->getText();
+            }
+            
+            if (method_exists($block, 'getTextAnchor') && $block->getTextAnchor()) {
+                $anchor = $block->getTextAnchor();
+                if (method_exists($anchor, 'getTextSegments')) {
+                    $segments = $anchor->getTextSegments();
+                    $text = '';
+                    foreach ($segments as $segment) {
+                        $text .= $segment->getText();
+                    }
+                    return $text ?: null;
+                }
+            }
+        } catch (\Exception $e) {
+            // Silently fail
+        }
+        
+        return null;
     }
 
     /**
