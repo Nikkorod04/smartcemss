@@ -123,4 +123,17 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | LLM-Based Form Extraction
+    |--------------------------------------------------------------------------
+    |
+    | Enable Mistral 7B (via Hugging Face) for intelligent PDF form extraction
+    | instead of regex-based extraction. This provides better accuracy but
+    | requires Hugging Face API token.
+    |
+    */
+
+    'use_llm_extraction' => env('USE_LLM_EXTRACTION', false),
+
 ];

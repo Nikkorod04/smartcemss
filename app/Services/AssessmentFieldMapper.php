@@ -2,8 +2,17 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
+
 class AssessmentFieldMapper
 {
+    protected $llmExtractor;
+
+    public function __construct(LLMFormExtractor $llmExtractor = null)
+    {
+        $this->llmExtractor = $llmExtractor;
+    }
+
     /**
      * Map extracted data from document to form fields
      */
@@ -11,11 +20,12 @@ class AssessmentFieldMapper
     {
         $mappedFields = [];
         
-        \Log::info('mapDataToFields called', [
+        Log::info('mapDataToFields called', [
             'sourceType' => $sourceType,
             'extractedDataKeys' => array_keys($extractedData),
             'textLength' => strlen($extractedData['text'] ?? ''),
-            'rawTextLength' => strlen($extractedData['raw_text'] ?? '')
+            'rawTextLength' => strlen($extractedData['raw_text'] ?? ''),
+            'useLLM' => config('app.use_llm_extraction'),
         ]);
 
         if ($sourceType === 'excel' || $sourceType === 'csv') {
@@ -23,13 +33,24 @@ class AssessmentFieldMapper
             $firstRow = $extractedData['data'][0] ?? [];
             $mappedFields = $this->mapStructuredData($firstRow);
         } elseif ($sourceType === 'pdf' || $sourceType === 'image' || $sourceType === 'images') {
-            // For unstructured text (PDF/Image), extract key-value pairs
+            // For unstructured text (PDF/Image), use LLM if enabled
             $text = $extractedData['text'] ?? $extractedData['raw_text'] ?? '';
-            \Log::info('mapUnstructuredText input', [
-                'textLength' => strlen($text),
-                'textPreview' => substr($text, 0, 200)
-            ]);
-            $mappedFields = $this->mapUnstructuredText($text);
+            
+            if (config('app.use_llm_extraction') && $this->llmExtractor) {
+                Log::info('Using LLM-based extraction');
+                try {
+                    $llmData = $this->llmExtractor->extractFormData($text);
+                    $mappedFields = $this->llmExtractor->processLLMOutput($llmData);
+                } catch (\Exception $e) {
+                    Log::error('LLM extraction failed, falling back to regex', [
+                        'error' => $e->getMessage(),
+                    ]);
+                    $mappedFields = $this->mapUnstructuredText($text);
+                }
+            } else {
+                Log::info('Using regex-based extraction');
+                $mappedFields = $this->mapUnstructuredText($text);
+            }
         }
 
         return $mappedFields;

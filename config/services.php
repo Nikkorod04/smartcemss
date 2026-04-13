@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'huggingface' => [
+        'token' => env('HF_API_TOKEN'),
+        'model' => env('HF_MODEL', 'mistralai/Mistral-7B-Instruct-v0.1'),
+    ],
+
 ];
