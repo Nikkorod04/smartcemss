@@ -5,19 +5,18 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Models\NeedsAssessment;
 use App\Observers\NeedsAssessmentObserver;
-use App\Services\HuggingFaceMistralService;
-use App\Services\LLMFormExtractor;
-use App\Services\AssessmentFieldMapper;
 use App\Services\GoogleDocumentAIService;
+use App\Services\AssessmentFieldMapper;
 
 class AppServiceProvider extends ServiceProvider
 {
     /**
      * Register any application services.
+     * Registers Google Document AI as the primary form extraction service
      */
     public function register(): void
     {
-        // Register Google Document AI service
+        // Register Google Document AI service (primary extractor)
         $this->app->singleton(GoogleDocumentAIService::class, function ($app) {
             try {
                 return new GoogleDocumentAIService();
@@ -29,26 +28,10 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // Register Hugging Face Mistral service
-        $this->app->singleton(HuggingFaceMistralService::class, function ($app) {
-            return new HuggingFaceMistralService();
-        });
-
-        // Register LLM Form Extractor
-        $this->app->singleton(LLMFormExtractor::class, function ($app) {
-            return new LLMFormExtractor(
-                $app->make(HuggingFaceMistralService::class)
-            );
-        });
-
-        // Register Assessment Field Mapper with conditional extractors
+        // Register Assessment Field Mapper (uses Document AI only)
         $this->app->singleton(AssessmentFieldMapper::class, function ($app) {
-            $docAiService = config('app.use_document_ai') ? $app->make(GoogleDocumentAIService::class) : null;
-            $llmExtractor = config('app.use_llm_extraction') 
-                ? $app->make(LLMFormExtractor::class)
-                : null;
-            
-            return new AssessmentFieldMapper($llmExtractor, $docAiService);
+            $docAiService = $app->make(GoogleDocumentAIService::class);
+            return new AssessmentFieldMapper($docAiService);
         });
     }
 

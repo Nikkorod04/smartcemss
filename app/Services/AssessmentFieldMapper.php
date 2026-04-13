@@ -6,17 +6,16 @@ use Illuminate\Support\Facades\Log;
 
 class AssessmentFieldMapper
 {
-    protected $llmExtractor;
     protected $documentAIService;
 
-    public function __construct(LLMFormExtractor $llmExtractor = null, GoogleDocumentAIService $documentAIService = null)
+    public function __construct(GoogleDocumentAIService $documentAIService = null)
     {
-        $this->llmExtractor = $llmExtractor;
         $this->documentAIService = $documentAIService;
     }
 
     /**
      * Map extracted data from document to form fields
+     * Uses ONLY Google Document AI (no fallbacks)
      */
     public function mapDataToFields(array $extractedData, string $sourceType = 'excel'): array
     {
@@ -24,9 +23,6 @@ class AssessmentFieldMapper
         
         Log::info('mapDataToFields called', [
             'sourceType' => $sourceType,
-            'extractedDataKeys' => array_keys($extractedData),
-            'textLength' => strlen($extractedData['text'] ?? ''),
-            'useDocumentAI' => config('app.use_document_ai'),
         ]);
 
         if ($sourceType === 'excel' || $sourceType === 'csv') {
@@ -34,51 +30,38 @@ class AssessmentFieldMapper
             $firstRow = $extractedData['data'][0] ?? [];
             $mappedFields = $this->mapStructuredData($firstRow);
         } elseif ($sourceType === 'pdf' || $sourceType === 'image' || $sourceType === 'images') {
-            // For unstructured text (PDF/Image), try extractors in order of preference
+            // For PDF/Image forms, use ONLY Google Document AI
+            Log::info('Processing with Google Document AI (primary extraction method)');
             
-            // Try 1: Google Document AI (if enabled and service available)
-            if (config('app.use_document_ai') && $this->documentAIService) {
-                Log::info('Attempting Document AI extraction');
-                try {
-                    // Document AI expects file path, not raw text
-                    // For this to work, we need the file path from the extraction process
-                    if (isset($extractedData['file_path'])) {
-                        $docAiResult = $this->documentAIService->processDocument($extractedData['file_path']);
-                        if ($docAiResult['success']) {
-                            Log::info('Document AI extraction succeeded');
-                            $mappedFields = $docAiResult['extracted_data'] ?? [];
-                        } else {
-                            Log::warning('Document AI extraction failed', [
-                                'error' => $docAiResult['error'] ?? 'unknown',
-                            ]);
-                        }
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Document AI extraction error', [
-                        'error' => $e->getMessage(),
-                    ]);
-                }
+            if (!$this->documentAIService) {
+                throw new \Exception('Document AI Service not initialized. Check credentials and configuration.');
             }
 
-            // Try 2: LLM extraction (fallback if Document AI not available or failed)
-            if (empty($mappedFields) && config('app.use_llm_extraction') && $this->llmExtractor) {
-                Log::info('Falling back to LLM extraction');
-                try {
-                    $text = $extractedData['text'] ?? $extractedData['raw_text'] ?? '';
-                    $llmData = $this->llmExtractor->extractFormData($text);
-                    $mappedFields = $this->llmExtractor->processLLMOutput($llmData);
-                } catch (\Exception $e) {
-                    Log::error('LLM extraction failed', [
-                        'error' => $e->getMessage(),
-                    ]);
+            try {
+                // Document AI expects file path, not raw text
+                if (!isset($extractedData['file_path'])) {
+                    throw new \Exception('File path not provided for Document AI processing');
                 }
-            }
 
-            // Try 3: Regex extraction (final fallback)
-            if (empty($mappedFields)) {
-                Log::info('Using regex-based extraction (fallback)');
-                $text = $extractedData['text'] ?? $extractedData['raw_text'] ?? '';
-                $mappedFields = $this->mapUnstructuredText($text);
+                $docAiResult = $this->documentAIService->processDocument($extractedData['file_path']);
+                
+                if (!$docAiResult['success']) {
+                    throw new \Exception($docAiResult['error'] ?? 'Document AI processing failed');
+                }
+
+                $mappedFields = $docAiResult['extracted_data'] ?? [];
+                
+                Log::info('Document AI extraction successful', [
+                    'fields_extracted' => count($mappedFields),
+                    'field_names' => array_keys($mappedFields),
+                ]);
+
+            } catch (\Exception $e) {
+                Log::error('Document AI extraction failed', [
+                    'error' => $e->getMessage(),
+                    'file_path' => $extractedData['file_path'] ?? 'unknown',
+                ]);
+                throw $e;
             }
         }
 
