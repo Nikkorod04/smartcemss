@@ -341,6 +341,15 @@ class AssessmentForm extends Component
             if (count($imageFiles) > 1) {
                 \Log::info('Processing ' . count($imageFiles) . ' images individually for OCR');
                 
+                // Log all files received
+                foreach ($imageFiles as $idx => $img) {
+                    \Log::info('Image file ' . ($idx + 1), [
+                        'name' => $img->getClientOriginalName(),
+                        'size' => $img->getSize(),
+                        'mime' => $img->getMimeType()
+                    ]);
+                }
+                
                 $mergedText = '';
                 $totalConfidence = 0;
                 $confidenceCount = 0;
@@ -360,20 +369,31 @@ class AssessmentForm extends Component
                 
                 foreach ($imageFiles as $index => $imageFile) {
                     $imageIndex = $index + 1;
-                    \Log::info('Processing image ' . $imageIndex . '/' . count($imageFiles));
+                    \Log::info('Processing image ' . $imageIndex . '/' . count($imageFiles), [
+                        'file' => $imageFile->getClientOriginalName(),
+                        'size' => $imageFile->getSize()
+                    ]);
                     
                     if ($ocrService) {
                         // Use OCR for this image
                         $ocrResult = $ocrService->extractFromImage($imageFile);
                         if ($ocrResult['success']) {
+                            \Log::info('Image ' . $imageIndex . ' OCR succeeded', [
+                                'text_length' => strlen($ocrResult['text']),
+                                'text_preview' => substr($ocrResult['text'], 0, 150),
+                                'confidence' => $ocrResult['confidence'] ?? 0
+                            ]);
+                            
                             $mergedText .= "--- Image $imageIndex ---\n";
                             $mergedText .= $ocrResult['text'] . "\n\n";
                             $totalConfidence += $ocrResult['confidence'] ?? 0;
                             $confidenceCount++;
                             $ocrCount++;
-                            \Log::info('Image ' . $imageIndex . ' OCR succeeded');
                         } else {
-                            \Log::warning('Image ' . $imageIndex . ' OCR failed: ' . ($ocrResult['error'] ?? 'unknown'));
+                            \Log::warning('Image ' . $imageIndex . ' OCR failed', [
+                                'error' => $ocrResult['error'] ?? 'unknown',
+                                'file' => $imageFile->getClientOriginalName()
+                            ]);
                         }
                     }
                 }
@@ -393,7 +413,10 @@ class AssessmentForm extends Component
                     ];
                     \Log::info('Multi-image OCR complete', [
                         'images_processed' => $ocrCount,
-                        'confidence' => $result['confidence']
+                        'merged_text_length' => strlen($sanitizedText),
+                        'merged_text_preview' => substr($sanitizedText, 0, 200),
+                        'confidence' => $result['confidence'],
+                        'images_expected' => count($imageFiles)
                     ]);
                 } else {
                     // OCR failed, fall back to PDF conversion
