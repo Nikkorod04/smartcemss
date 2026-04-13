@@ -225,6 +225,7 @@ class AssessmentFieldMapper
         $text = preg_replace('/SECTION\s+[IVX]+\s*:\s*/i', ' | SECTIONBREAK | ', $text);
         
         // Exact field labels from the PDF form (case-insensitive matching)
+        // Updated to match single-line format with spaces around colons
         $labelMap = [
             // SECTION I: Identifying Information
             'first name' => 'respondent_first_name',
@@ -329,15 +330,16 @@ class AssessmentFieldMapper
             }
             
             // Build a case-insensitive search pattern for this specific label
-            // Pattern: label followed by colon, then capture value until next known label or break
+            // Pattern: label followed by optional spaces, colon, then capture value until next known label or break
             $escapedLabel = preg_quote($label, '/');
             
-            // Match: "label:" followed by everything (non-greedy) until next label or SECTIONBREAK
-            // Use .*? instead of [^:]* to properly handle values that might contain certain characters
+            // More flexible pattern for single-line format:
+            // Allows optional whitespace: "label" [optional spaces] ":" [optional spaces] value
             $nextLabelsPattern = implode('|', array_map(function($l) {
                 return preg_quote($l, '/');
             }, $sortedLabels));
             
+            // Updated pattern to handle single-line formats with spaces around colons
             $pattern = '/' . $escapedLabel . '\s*:\s*(.*?)(?=(?:' . $nextLabelsPattern . ')\s*:|\|\ SECTIONBREAK\ \|)/ims';
             
             if (preg_match($pattern, $text, $matches)) {
