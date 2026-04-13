@@ -216,16 +216,33 @@ class GoogleDocumentAIService
     private function extractFormData($document): array
     {
         $formFields = [];
+        $allEntities = [];
 
         try {
             foreach ($document->getEntities() as $entity) {
-                $fieldName = $this->normalizeFieldName($entity->getType());
-                $fieldValue = $this->extractEntityValue($entity);
+                $type = $entity->getType();
+                $mentionText = $this->extractEntityValue($entity);
+                
+                // Log all entities for debugging
+                $allEntities[] = [
+                    'type' => $type,
+                    'mention_text' => $mentionText ? substr($mentionText, 0, 100) : null,
+                    'confidence' => $entity->getConfidence(),
+                ];
+
+                $fieldName = $this->normalizeFieldName($type);
+                $fieldValue = $mentionText;
 
                 if ($fieldName && $fieldValue !== null) {
                     $formFields[$fieldName] = $fieldValue;
                 }
             }
+            
+            Log::info('GoogleDocumentAIService: All extracted entities', [
+                'total_entities' => count($allEntities),
+                'entities' => $allEntities,
+                'matched_fields' => count($formFields),
+            ]);
         } catch (\Exception $e) {
             Log::warning('GoogleDocumentAIService: Error extracting form data', [
                 'error' => $e->getMessage(),
