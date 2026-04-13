@@ -17,21 +17,15 @@
             <!-- Quarter/Year Selector -->
             @if($availablePeriods->count() > 0)
             <div class="mb-8">
-                <h2 class="text-xl font-bold text-gray-900 mb-4">View Assessment by Period:</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <label for="period-selector" class="block text-sm font-bold text-gray-900 mb-3">View Assessment by Period:</label>
+                <select id="period-selector" class="px-4 py-2 rounded-lg border-2 border-indigo-600 bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500" onchange="window.location.href = this.value">
                     @foreach($availablePeriods as $period)
-                    <a href="{{ route('communities.assessment-summary', ['community' => $community, 'quarter' => $period->quarter, 'year' => $period->year]) }}" 
-                       class="px-4 py-3 rounded-lg font-bold text-center transition transform hover:scale-105
-                           @if($period->quarter === $quarter && $period->year === $year)
-                           bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-400
-                           @else
-                           bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400
-                           @endif">
-                        <div class="text-sm">{{ $period->quarter }}</div>
-                        <div class="text-lg">{{ $period->year }}</div>
-                    </a>
+                    <option value="{{ route('communities.assessment-summary', ['community' => $community, 'quarter' => $period->quarter, 'year' => $period->year]) }}"
+                        @if($period->quarter === $quarter && $period->year === $year) selected @endif>
+                        {{ $period->quarter }} {{ $period->year }}
+                    </option>
                     @endforeach
-                </div>
+                </select>
             </div>
             @endif
 
