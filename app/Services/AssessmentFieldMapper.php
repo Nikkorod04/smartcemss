@@ -34,7 +34,10 @@ class AssessmentFieldMapper
             Log::info('Processing with Google Document AI (primary extraction method)');
             
             if (!$this->documentAIService) {
-                throw new \Exception('Document AI Service not initialized. Check credentials and configuration.');
+                Log::error('Document AI Service is null - initialization likely failed', [
+                    'sourceType' => $sourceType,
+                ]);
+                throw new \Exception('Document AI Service not initialized. Check laravel.log for initialization errors and ensure credentials are properly configured.');
             }
 
             try {

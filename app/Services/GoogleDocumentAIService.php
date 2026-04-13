@@ -29,18 +29,22 @@ class GoogleDocumentAIService
             throw new \Exception("Google Document AI credentials file not found at {$credentialsPath}");
         }
 
-        putenv('GOOGLE_APPLICATION_CREDENTIALS=' . $credentialsPath);
-
         try {
-            $this->client = new DocumentProcessorServiceClient();
+            // Initialize DocumentProcessorServiceClient with explicit credentials
+            $this->client = new DocumentProcessorServiceClient([
+                'credentials' => $credentialsPath,
+            ]);
+            
             $this->processorName = "projects/{$projectId}/locations/us/processors/{$processorId}";
             
             Log::info('Google Document AI Service initialized', [
                 'processor' => $this->processorName,
+                'credentials_path' => $credentialsPath,
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to initialize Document AI Service', [
                 'error' => $e->getMessage(),
+                'credentials_path' => $credentialsPath,
             ]);
             throw $e;
         }
