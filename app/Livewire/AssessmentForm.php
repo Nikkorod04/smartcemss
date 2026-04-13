@@ -339,7 +339,10 @@ class AssessmentForm extends Component
             
             $result = null;
             $mappedData = [];
-            $mapper = new AssessmentFieldMapper();
+            
+            // Get Google Document AI service from container
+            $docAiService = app(\App\Services\GoogleDocumentAIService::class);
+            $mapper = new AssessmentFieldMapper($docAiService);
             
             // Handle image files: Convert to PDF and use Google Document AI
             if (!empty($imageFiles)) {

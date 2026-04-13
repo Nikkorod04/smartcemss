@@ -43,7 +43,7 @@ return [
     'google_docai' => [
         'project_id' => env('GOOGLE_CLOUD_PROJECT_ID'),
         'processor_id' => env('GOOGLE_DOCAI_PROCESSOR_ID'),
-        'credentials_file' => env('GOOGLE_DOCAI_CREDENTIALS_FILE', 'google-doc-ai-credentials.json'),
+        'credentials_file' => env('GOOGLE_CREDENTIALS_FILE', 'google-credentials.json'),
     ],
 
 ];
