@@ -313,6 +313,9 @@ class AssessmentForm extends Component
             return;
         }
 
+        // Increase execution time for image processing (Google Cloud Vision API can be slow)
+        set_time_limit(300); // 5 minutes
+
         try {
             // Validate files
             $this->validate([
