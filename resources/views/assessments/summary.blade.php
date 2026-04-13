@@ -2,64 +2,38 @@
     <div class="min-h-screen bg-white py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Header -->
-            <div class="mb-8 flex items-center justify-between">
+            <div class="mb-8 flex items-start gap-4">
+                <a href="{{ route('communities.show', $community) }}" class="inline-flex items-center justify-center w-10 h-10 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition mt-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900">{{ $community->name }}</h1>
                     <p class="text-gray-600 mt-1">Community Needs Assessment Summary</p>
                 </div>
-                <a href="{{ route('communities.show', $community) }}" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Back to Community
-                </a>
             </div>
 
             <!-- Quarter/Year Selector -->
             @if($availablePeriods->count() > 0)
-            <div class="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <label class="block text-sm font-semibold text-gray-900 mb-3">View Assessment by Period:</label>
-                <div class="flex gap-4 flex-wrap">
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">View Assessment by Period:</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                     @foreach($availablePeriods as $period)
                     <a href="{{ route('communities.assessment-summary', ['community' => $community, 'quarter' => $period->quarter, 'year' => $period->year]) }}" 
-                       class="px-4 py-2 rounded-lg font-medium transition
+                       class="px-4 py-3 rounded-lg font-bold text-center transition transform hover:scale-105
                            @if($period->quarter === $quarter && $period->year === $year)
-                           bg-blue-600 text-white
+                           bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-400
                            @else
-                           bg-white text-gray-700 hover:bg-gray-100 border border-gray-300
+                           bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400
                            @endif">
-                        {{ $period->quarter }} {{ $period->year }}
+                        <div class="text-sm">{{ $period->quarter }}</div>
+                        <div class="text-lg">{{ $period->year }}</div>
                     </a>
                     @endforeach
                 </div>
             </div>
             @endif
-
-            <!-- Summary Header Card -->
-            <div class="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-6 mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div>
-                        <p class="text-sm text-gray-600 font-medium">Period</p>
-                        <p class="text-2xl font-bold text-blue-600 mt-1">{{ $quarter }} {{ $year }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-600 font-medium">Total Responses</p>
-                        <p class="text-4xl font-bold text-blue-600 mt-1">{{ $summary->total_responses }}</p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-600 font-medium">Avg. Service Satisfaction</p>
-                        <p class="text-4xl font-bold text-blue-600 mt-1">
-                            {{ $summary->avg_service_satisfaction ? number_format($summary->avg_service_satisfaction, 1) : 'N/A' }}<span class="text-xl">/5</span>
-                        </p>
-                    </div>
-                    <div>
-                        <p class="text-sm text-gray-600 font-medium">Program Baseline Score</p>
-                        <p class="text-4xl font-bold text-blue-600 mt-1">
-                            {{ $summary->baseline_satisfaction_score ? number_format($summary->baseline_satisfaction_score, 2) : 'N/A' }}
-                        </p>
-                    </div>
-                </div>
-            </div>
 
             <!-- Demographics Section -->
             <div class="mb-8">
