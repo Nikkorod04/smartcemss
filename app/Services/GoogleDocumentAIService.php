@@ -16,20 +16,42 @@ class GoogleDocumentAIService
 
     public function __construct()
     {
+        Log::info('GoogleDocumentAIService constructor called');
+        
         $credentialsFile = config('services.google_docai.credentials_file');
         $projectId = config('services.google_docai.project_id');
         $processorId = config('services.google_docai.processor_id');
 
+        Log::info('Loaded config values', [
+            'credentials_file' => $credentialsFile ?? 'NULL',
+            'project_id' => $projectId ?? 'NULL',
+            'processor_id' => $processorId ?? 'NULL',
+        ]);
+
         if (!$credentialsFile || !$projectId || !$processorId) {
-            throw new \Exception('Google Document AI configuration missing. Check config/services.php');
+            $missing = [];
+            if (!$credentialsFile) $missing[] = 'credentials_file';
+            if (!$projectId) $missing[] = 'project_id';
+            if (!$processorId) $missing[] = 'processor_id';
+            
+            throw new \Exception('Google Document AI configuration missing: ' . implode(', ', $missing) . '. Check config/services.php and .env');
         }
 
         $credentialsPath = storage_path('app' . DIRECTORY_SEPARATOR . $credentialsFile);
+        Log::info('Checking credentials file', [
+            'path' => $credentialsPath,
+            'exists' => file_exists($credentialsPath),
+        ]);
+        
         if (!file_exists($credentialsPath)) {
             throw new \Exception("Google Document AI credentials file not found at {$credentialsPath}");
         }
 
         try {
+            Log::info('Initializing DocumentProcessorServiceClient', [
+                'credentials_path' => $credentialsPath,
+            ]);
+            
             // Initialize DocumentProcessorServiceClient with explicit credentials
             $this->client = new DocumentProcessorServiceClient([
                 'credentials' => $credentialsPath,
@@ -37,13 +59,17 @@ class GoogleDocumentAIService
             
             $this->processorName = "projects/{$projectId}/locations/us/processors/{$processorId}";
             
-            Log::info('Google Document AI Service initialized', [
+            Log::info('Google Document AI Service initialized successfully', [
                 'processor' => $this->processorName,
                 'credentials_path' => $credentialsPath,
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to initialize Document AI Service', [
+            Log::error('CRITICAL: Failed to initialize DocumentProcessorServiceClient', [
                 'error' => $e->getMessage(),
+                'class' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
                 'credentials_path' => $credentialsPath,
             ]);
             throw $e;

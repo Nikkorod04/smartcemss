@@ -19,17 +19,21 @@ class AppServiceProvider extends ServiceProvider
         // Register Google Document AI service (primary extractor)
         $this->app->singleton(GoogleDocumentAIService::class, function ($app) {
             try {
+                \Log::info('Attempting to initialize Google Document AI Service');
                 $service = new GoogleDocumentAIService();
                 \Log::info('Google Document AI Service registered successfully');
                 return $service;
             } catch (\Exception $e) {
-                \Log::error('Failed to initialize Google Document AI Service', [
+                \Log::error('CRITICAL: Failed to initialize Google Document AI Service', [
                     'error' => $e->getMessage(),
+                    'class' => get_class($e),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
+                    'code' => $e->getCode(),
+                    'trace' => $e->getTraceAsString(),
                 ]);
-                // Return null so dependent services can handle gracefully
-                return null;
+                // Rethrow so we can see the error
+                throw $e;
             }
         });
 
