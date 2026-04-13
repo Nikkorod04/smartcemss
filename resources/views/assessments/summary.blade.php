@@ -18,7 +18,7 @@
             @if($availablePeriods->count() > 0)
             <div class="mb-8">
                 <label for="period-selector" class="block text-sm font-bold text-gray-900 mb-3">View Assessment by Period:</label>
-                <select id="period-selector" class="px-4 py-2 rounded-lg border-2 border-indigo-600 bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500" onchange="window.location.href = this.value">
+                <select id="period-selector" class="px-4 py-2 pr-10 rounded-lg border-2 border-indigo-600 bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer appearance-none" onchange="window.location.href = this.value">
                     @foreach($availablePeriods as $period)
                     <option value="{{ route('communities.assessment-summary', ['community' => $community, 'quarter' => $period->quarter, 'year' => $period->year]) }}"
                         @if($period->quarter === $quarter && $period->year === $year) selected @endif>
