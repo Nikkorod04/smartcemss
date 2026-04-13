@@ -94,6 +94,23 @@
             <!-- Imported Data Review Section -->
             @if($showImportedDataReview && !empty($importedData))
             <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                
+                <!-- Raw OCR Text -->
+                @if(!empty($rawOcrText))
+                <div class="mb-6">
+                    <h3 class="text-md font-semibold text-gray-900 mb-3 border-b pb-2">📄 Raw OCR Text</h3>
+                    <pre class="bg-white p-4 rounded border border-gray-300 text-xs overflow-auto max-h-64 text-gray-700 whitespace-pre-wrap break-words">{{ $rawOcrText }}</pre>
+                </div>
+                @endif
+                
+                <!-- Cleaned Extracted Data -->
+                @if(!empty($cleanedExtractedData))
+                <div class="mb-6">
+                    <h3 class="text-md font-semibold text-gray-900 mb-3 border-b pb-2">✨ LLM Cleaned Data (JSON)</h3>
+                    <pre class="bg-white p-4 rounded border border-gray-300 text-xs overflow-auto max-h-64 text-gray-700 whitespace-pre-wrap break-words">{{ json_encode($cleanedExtractedData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                </div>
+                @endif
+                
                 <h3 class="text-md font-semibold text-blue-900 mb-4">Extracted Data Preview</h3>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

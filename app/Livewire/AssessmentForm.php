@@ -33,6 +33,8 @@ class AssessmentForm extends Component
     public $showImportedDataReview = false;
     public $ocrMethod = null;
     public $ocrConfidence = null;
+    public $rawOcrText = '';
+    public $cleanedExtractedData = [];
 
     // SECTION I - Respondent Info
     public $respondent_first_name;
@@ -446,6 +448,12 @@ class AssessmentForm extends Component
                 'field_names' => array_keys($mappedData)
             ]);
 
+            // Store raw OCR text for display
+            $this->rawOcrText = $result['text'] ?? '';
+            
+            // Store cleaned extracted data (the LLM output or readable version of mappedData)
+            $this->cleanedExtractedData = $mappedData;
+
             // Store imported data for review
             $this->importedData = $mappedData;
             $this->importStatus = 'success';
@@ -525,6 +533,8 @@ class AssessmentForm extends Component
         $this->assessment_files = [];
         $this->ocrMethod = null;
         $this->ocrConfidence = null;
+        $this->rawOcrText = '';
+        $this->cleanedExtractedData = [];
     }
 
     public function submit()
