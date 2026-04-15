@@ -47,6 +47,15 @@
                         <img src="{{ asset('icons/calendar.png') }}" alt="Calendar" class="w-5 h-5 object-contain">
                         <span>Calendar</span>
                     </a>
+
+                    <!-- Activity Proposals -->
+                    <a href="{{ route('proposals.index') }}" class="sidebar-item {{ request()->routeIs('proposals.*') ? 'active' : '' }}">
+                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V6a1 1 0 00-1-1h-3a1 1 0 000-2 2 2 0 00-2-2H6a2 2 0 00-2 2zM9 9a1 1 0 000 2h6a1 1 0 000-2H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Activity Proposals</span>
+                    </a>
                 </nav>
 
                 <!-- Logout at Bottom -->

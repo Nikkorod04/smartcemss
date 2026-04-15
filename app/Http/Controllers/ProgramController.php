@@ -119,7 +119,10 @@ class ProgramController extends Controller
         if ($request->hasFile('attachments')) {
             foreach ($request->file('attachments') as $attachment) {
                 $path = $attachment->store('programs/attachments', 'public');
-                $attachments[] = $path;
+                $attachments[] = [
+                    'path' => $path,
+                    'name' => $attachment->getClientOriginalName(),
+                ];
             }
             $validated['attachments'] = $attachments;
         }
@@ -259,7 +262,10 @@ class ProgramController extends Controller
             
             foreach ($request->file('attachments') as $attachment) {
                 $path = $attachment->store('programs/attachments', 'public');
-                $attachments[] = $path;
+                $attachments[] = [
+                    'path' => $path,
+                    'name' => $attachment->getClientOriginalName(),
+                ];
             }
             $validated['attachments'] = $attachments;
         }

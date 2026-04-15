@@ -63,8 +63,8 @@
             <h2 class="text-lg font-bold text-gray-900 mb-4">Upload Assessment File(s)</h2>
             <div>
                 <label class="block text-sm font-medium text-gray-900 mb-2">Select Files *</label>
-                <input type="file" wire:model="assessment_files" accept=".jpg,.jpeg,.png,.pdf,.xlsx,.csv" multiple class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lnu-blue" />
-                <p class="text-xs text-gray-500 mt-1">📸 Multiple images (max 4): Auto-converts to PDF. Single file: PDF, XLSX, CSV, JPG, or PNG (Max 10MB each)</p>
+                <input type="file" wire:model="assessment_files" accept=".jpg,.jpeg,.png,.pdf,.xlsx,.csv,.docx" multiple class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lnu-blue" />
+                <p class="text-xs text-gray-500 mt-1">📸 Multiple images (max 4): Auto-converts to PDF. Single file: PDF, DOCX, XLSX, CSV, JPG, or PNG (Max 10MB each)</p>
                 
                 <!-- File count indicator -->
                 @if(!empty($assessment_files))

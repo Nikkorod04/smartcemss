@@ -16,6 +16,8 @@ class Activity extends Model
         'extension_program_id',
         'title',
         'description',
+        'planned_start_date',
+        'planned_end_date',
         'actual_start_date',
         'actual_end_date',
         'venue',
@@ -28,6 +30,8 @@ class Activity extends Model
     ];
 
     protected $casts = [
+        'planned_start_date' => 'date',
+        'planned_end_date' => 'date',
         'actual_start_date' => 'date',
         'actual_end_date' => 'date',
     ];

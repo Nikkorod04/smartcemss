@@ -70,6 +70,32 @@
                     </div>
                 </div>
 
+                <!-- Attachments -->
+                @if($expense->attachment && is_array($expense->attachment) && count($expense->attachment) > 0)
+                    <div class="space-y-4 pb-6 border-b">
+                        <h4 class="text-lg font-semibold text-gray-800">Attachments</h4>
+                        <div class="space-y-2">
+                            @foreach($expense->attachment as $attachment)
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 flex justify-between items-center">
+                                    <div class="flex items-center gap-3 flex-1">
+                                        <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
+                                            <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
+                                        </svg>
+                                        <div class="flex-1">
+                                            <p class="font-medium text-gray-800 text-sm">{{ $attachment['name'] ?? basename($attachment['path'] ?? $attachment) }}</p>
+                                            <p class="text-xs text-gray-600">{{ strtoupper(pathinfo($attachment['path'] ?? $attachment, PATHINFO_EXTENSION)) }} file</p>
+                                        </div>
+                                    </div>
+                                    <a href="{{ asset('storage/' . ($attachment['path'] ?? $attachment)) }}" download class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm font-medium transition">
+                                        Download
+                                    </a>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 <!-- People Involved -->
                 @if($expense->people_involved && count($expense->people_involved) > 0)
                     <div class="space-y-4 pb-6 border-b">

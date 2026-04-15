@@ -16,16 +16,21 @@
 
             <!-- Quarter/Year Selector -->
             @if($availablePeriods->count() > 0)
-            <div class="mb-8">
-                <label for="period-selector" class="block text-sm font-bold text-gray-900 mb-3">View Assessment by Period:</label>
-                <select id="period-selector" class="px-4 py-2 pr-10 rounded-lg border-2 border-indigo-600 bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer appearance-none" onchange="window.location.href = this.value">
-                    @foreach($availablePeriods as $period)
-                    <option value="{{ route('communities.assessment-summary', ['community' => $community, 'quarter' => $period->quarter, 'year' => $period->year]) }}"
-                        @if($period->quarter === $quarter && $period->year === $year) selected @endif>
-                        {{ $period->quarter }} {{ $period->year }}
-                    </option>
-                    @endforeach
-                </select>
+            <div class="mb-8 flex items-end gap-4">
+                <div>
+                    <label for="period-selector" class="block text-sm font-bold text-gray-900 mb-3">View Assessment by Period:</label>
+                    <select id="period-selector" class="px-4 py-2 pr-10 rounded-lg border-2 border-indigo-600 bg-white text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer appearance-none" onchange="window.location.href = this.value">
+                        @foreach($availablePeriods as $period)
+                        <option value="{{ route('communities.assessment-summary', ['community' => $community, 'quarter' => $period->quarter, 'year' => $period->year]) }}"
+                            @if($period->quarter === $quarter && $period->year === $year) selected @endif>
+                            {{ $period->quarter }} {{ $period->year }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-indigo-100 text-indigo-800">
+                    {{ $assessments->count() }} {{ Str::plural('response', $assessments->count()) }}
+                </span>
             </div>
             @endif
 
@@ -741,4 +746,80 @@
             });
         }
     </script>
+
+            <!-- AI-Powered Community Analysis Section -->
+            @if($summary && $summary->ai_analysis)
+            <div class="mb-8 mt-12">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-2xl font-bold text-gray-900 pb-3 border-b-2 border-amber-500">AI-Powered Community Analysis</h2>
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            Powered by ChatGPT
+                        </span>
+                    </div>
+                    <form method="POST" action="{{ route('communities.regenerate-analysis', $community) }}" class="inline">
+                        @csrf
+                        <input type="hidden" name="quarter" value="{{ $quarter }}">
+                        <input type="hidden" name="year" value="{{ $year }}">
+                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-medium transition duration-200 active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Regenerate Analysis
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Analysis Content -->
+                <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg shadow-md p-8 border border-amber-200">
+                    <div class="prose prose-sm max-w-none text-gray-800 leading-relaxed prose-headings:text-amber-900 prose-strong:text-amber-900 prose-h1:text-xl prose-h2:text-lg prose-h3:text-base prose-h4:text-sm prose-ul:list-disc prose-ol:list-decimal prose-li:ml-4 prose-code:bg-amber-200 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-amber-900 prose-hr:border-amber-300">
+                        {!! Str::markdown($summary->ai_analysis) !!}
+                    </div>
+                </div>
+
+                <!-- Last Generated Time -->
+                @if($summary->ai_analysis_generated_at)
+                <div class="mt-4 text-xs text-gray-500 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Analysis generated on {{ $summary->ai_analysis_generated_at->format('M d, Y \a\t H:i A') }}
+                </div>
+                @endif
+            </div>
+            @else
+            <!-- No AI Analysis yet - Show placeholder -->
+            <div class="mb-8 mt-12">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 pb-3 border-b-2 border-gray-300">AI-Powered Community Analysis</h2>
+                    <form method="POST" action="{{ route('communities.regenerate-analysis', $community) }}" class="inline">
+                        @csrf
+                        <input type="hidden" name="quarter" value="{{ $quarter }}">
+                        <input type="hidden" name="year" value="{{ $year }}">
+                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-medium transition duration-200 active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            Generate Insights
+                        </button>
+                    </form>
+                </div>
+
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-8 border border-gray-300 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-200 mb-4">
+                        <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <p class="text-gray-600 font-medium">AI analysis will be generated automatically when new assessments are added.</p>
+                    <p class="text-gray-500 text-sm mt-2">The system analyzes all responses for this period and creates insights, priorities, and recommendations.</p>
+                </div>
+            </div>
+            @endif
+
+        </div>
+    </div>
 </x-admin-layout>

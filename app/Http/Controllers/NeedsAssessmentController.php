@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\NeedsAssessment;
 use App\Models\Community;
+use App\Services\CommunityAnalysisService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -133,6 +134,22 @@ class NeedsAssessmentController extends Controller
         $validated['uploaded_by'] = Auth::id();
 
         $assessment = NeedsAssessment::create($validated);
+
+        // Trigger AI analysis generation for this quarter/year
+        try {
+            $analysisService = app(CommunityAnalysisService::class);
+            $analysisService->generateAnalysis(
+                $assessment->community,
+                $assessment->quarter,
+                $assessment->year
+            );
+        } catch (\Exception $e) {
+            \Log::warning('Failed to auto-generate AI analysis', [
+                'assessment_id' => $assessment->id,
+                'error' => $e->getMessage(),
+            ]);
+            // Don't fail the assessment creation if AI analysis fails
+        }
 
         return redirect()->route('assessments.show', $assessment)
             ->with('success', 'Needs assessment created successfully!');

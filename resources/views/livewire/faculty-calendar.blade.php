@@ -19,9 +19,92 @@
         </div>
     </div>
 
-    <!-- Calendar Container -->
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <div id="calendar"></div>
+    <!-- Main Content: Calendar + Upcoming Events Below -->
+    <div class="grid grid-cols-1 gap-6">
+        <!-- Calendar (Full Width) -->
+        <div>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div id="calendar"></div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events Section (Full Width Below) -->
+        <div>
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg shadow-lg p-6 border border-blue-200">
+                <div class="flex items-center gap-2 mb-6">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <h2 class="text-xl font-bold text-gray-900">Upcoming Events <span class="text-sm text-gray-500">({{ isset($upcomingEvents) ? count($upcomingEvents) : 0 }})</span></h2>
+                </div>
+
+                @if(isset($upcomingEvents) && is_array($upcomingEvents) && count($upcomingEvents) > 0)
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        @foreach($upcomingEvents as $event)
+                        <a href="{{ $event['url'] }}" class="p-4 bg-white rounded-lg border-t-4 hover:shadow-md transition-all group" style="border-color: {{ $event['color'] }};">
+                            <div class="flex items-start gap-3">
+                                <div class="flex-shrink-0">
+                                    @if($event['type'] === 'program')
+                                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" />
+                                        </svg>
+                                    @else
+                                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v2h16V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" />
+                                        </svg>
+                                    @endif
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 truncate">{{ $event['title'] }}</h3>
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        {{ $event['start_date']->format('M d, Y') }}
+                                    </p>
+                                    <div class="flex items-center gap-2 mt-2 flex-wrap">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                            @if($event['type'] === 'program')
+                                                bg-blue-100 text-blue-800
+                                            @else
+                                                bg-green-100 text-green-800
+                                            @endif">
+                                            {{ ucfirst($event['type']) }}
+                                        </span>
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                            @if($event['status'] === 'approved')
+                                                bg-gray-100 text-gray-800
+                                            @elseif($event['status'] === 'ongoing')
+                                                bg-purple-100 text-purple-800
+                                            @else
+                                                bg-yellow-100 text-yellow-800
+                                            @endif">
+                                            {{ ucfirst($event['status']) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        @endforeach
+                    </div>
+
+                    <!-- See All Link -->
+                    <div class="mt-6 pt-4 border-t border-blue-200">
+                        <a href="#" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700">
+                            View All Events
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </div>
+                @else
+                    <div class="py-8 text-center">
+                        <svg class="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7 12a5 5 0 1110 0 5 5 0 01-10 0z" />
+                        </svg>
+                        <p class="text-gray-600 font-medium mb-2">No Upcoming Events</p>
+                        <p class="text-sm text-gray-500">You don't have any scheduled programs or activities coming up.</p>
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 
     <!-- Add Availability Modal -->

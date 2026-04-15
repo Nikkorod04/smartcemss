@@ -320,7 +320,7 @@ class AssessmentForm extends Component
             // Validate files
             $this->validate([
                 'assessment_files' => 'required|array|min:1|max:4',
-                'assessment_files.*' => 'required|file|mimes:jpg,jpeg,png,pdf,xlsx,csv|max:10240',
+                'assessment_files.*' => 'required|file|mimes:jpg,jpeg,png,pdf,xlsx,csv,docx|max:10240',
             ]);
 
             // Get the files to process

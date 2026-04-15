@@ -55,15 +55,33 @@
                                 <x-input-error :messages="$errors->get('description')" class="mt-2" />
                             </div>
 
+                            <div class="pt-4 border-t-2 border-blue-100">
+                                <h4 class="font-semibold text-gray-900 mb-3 text-sm">Planned Activity Dates <span class="text-gray-500 text-xs">(Optional - for timeline planning)</span></h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <x-input-label for="planned_start_date" :value="__('Planned Start Date')" />
+                                        <x-text-input id="planned_start_date" class="block w-full mt-1" type="date" 
+                                                    name="planned_start_date" value="{{ old('planned_start_date') }}" />
+                                        <x-input-error :messages="$errors->get('planned_start_date')" class="mt-2" />
+                                    </div>
+                                    <div>
+                                        <x-input-label for="planned_end_date" :value="__('Planned End Date')" />
+                                        <x-text-input id="planned_end_date" class="block w-full mt-1" type="date" 
+                                                    name="planned_end_date" value="{{ old('planned_end_date') }}" />
+                                        <x-input-error :messages="$errors->get('planned_end_date')" class="mt-2" />
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <x-input-label for="actual_start_date" :value="__('Start Date')" />
+                                    <x-input-label for="actual_start_date" :value="__('Actual Start Date')" />
                                     <x-text-input id="actual_start_date" class="block w-full mt-1" type="date" 
                                                 name="actual_start_date" value="{{ old('actual_start_date') }}" required />
                                     <x-input-error :messages="$errors->get('actual_start_date')" class="mt-2" />
                                 </div>
                                 <div>
-                                    <x-input-label for="actual_end_date" :value="__('End Date')" />
+                                    <x-input-label for="actual_end_date" :value="__('Actual End Date')" />
                                     <x-text-input id="actual_end_date" class="block w-full mt-1" type="date" 
                                                 name="actual_end_date" value="{{ old('actual_end_date') }}" required />
                                     <x-input-error :messages="$errors->get('actual_end_date')" class="mt-2" />

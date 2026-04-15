@@ -5,9 +5,12 @@ namespace App\Livewire;
 use App\Models\BudgetUtilization;
 use App\Models\ExtensionProgram;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class EditExpenseModal extends Component
 {
+    use WithFileUploads;
+
     public $expenseId;
     public $expense;
     public $activities = [];
@@ -22,6 +25,8 @@ class EditExpenseModal extends Component
     public $activity_id;
     public $people_involved = [];
     public $offices_involved = [];
+    public $attachments = [];
+    public $uploadedFiles = [];
     
     public $personName = '';
     public $personPosition = '';
@@ -51,6 +56,7 @@ class EditExpenseModal extends Component
             $this->activity_id = $this->expense->activity_id;
             $this->people_involved = $this->expense->people_involved ?? [];
             $this->offices_involved = $this->expense->offices_involved ?? [];
+            $this->attachments = is_array($this->expense->attachment) ? $this->expense->attachment : [];
             
             // Load activities for the program
             $program = $this->expense->extensionProgram;
@@ -115,6 +121,31 @@ class EditExpenseModal extends Component
         $this->offices_involved = array_values($this->offices_involved);
     }
 
+    public function updatedUploadedFiles()
+    {
+        if (count($this->uploadedFiles) + count($this->attachments) > 3) {
+            $this->addError('uploadedFiles', 'Maximum 3 files allowed');
+            array_pop($this->uploadedFiles);
+            return;
+        }
+
+        foreach ($this->uploadedFiles as $file) {
+            $this->attachments[] = [
+                'file' => $file,
+                'name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+            ];
+        }
+        
+        $this->uploadedFiles = [];
+    }
+
+    public function removeAttachment($index)
+    {
+        unset($this->attachments[$index]);
+        $this->attachments = array_values($this->attachments);
+    }
+
     public function saveExpense()
     {
         $this->validate([
@@ -125,11 +156,29 @@ class EditExpenseModal extends Component
         ]);
 
         try {
+            $attachmentPaths = [];
+            
+            // Process existing and new attachments
+            foreach ($this->attachments as $attachment) {
+                if (isset($attachment['file'])) {
+                    // New file to be stored
+                    $path = $attachment['file']->store('budget-utilizations/attachments', 'public');
+                    $attachmentPaths[] = [
+                        'path' => $path,
+                        'name' => $attachment['name'],
+                    ];
+                } elseif (isset($attachment['path'])) {
+                    // Existing file
+                    $attachmentPaths[] = $attachment;
+                }
+            }
+
             $this->expense->update([
                 'date_spent' => $this->date_spent,
                 'amount' => $this->amount,
                 'description' => $this->description,
                 'transaction_type' => $this->transaction_type,
+                'attachment' => count($attachmentPaths) > 0 ? $attachmentPaths : null,
                 'budget_source' => $this->budget_source,
                 'source_description' => $this->source_description,
                 'activity_id' => $this->activity_id ?: null,
@@ -155,3 +204,4 @@ class EditExpenseModal extends Component
         return view('livewire.edit-expense-modal');
     }
 }
+

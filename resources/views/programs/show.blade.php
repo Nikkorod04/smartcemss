@@ -1,9 +1,16 @@
 <x-admin-layout header="Program Details">
     <div class="bg-white rounded-lg shadow-lg -mx-6 -my-8 md:-mx-8 md:-my-8 p-6 md:p-8 space-y-6">
         <!-- Header with Actions -->
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-6">
             <div>
-                <h1 class="text-3xl font-bold text-lnu-blue">{{ $program->title }}</h1>
+                <div class="flex items-center gap-3 mb-2">
+                    <a href="{{ route('programs.index') }}" class="inline-flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 transition text-lnu-blue hover:text-blue-800">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </a>
+                    <h1 class="text-3xl font-bold text-lnu-blue">{{ $program->title }}</h1>
+                </div>
                 <div class="flex items-center gap-4 mt-2">
                     <span class="inline-block capitalize px-3 py-1 rounded-full text-sm font-medium
                         @if($program->status === 'draft') bg-yellow-100 text-yellow-800
@@ -24,6 +31,12 @@
                         <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                     </svg>
                     M&E Dashboard
+                </a>
+                <a href="{{ route('programs.timeline', $program) }}" class="btn-primary flex items-center gap-2 bg-purple-600 hover:bg-purple-700">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M4 5a1 1 0 011-1h4a1 1 0 011 1v12a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm6 0a1 1 0 011-1h4a1 1 0 011 1v12a1 1 0 01-1 1h-4a1 1 0 01-1-1V5z" />
+                    </svg>
+                    Timeline
                 </a>
                 <a href="{{ route('programs.edit', $program) }}" class="btn-primary flex items-center gap-2">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -118,22 +131,12 @@
                 <!-- Activities -->
                 @if ($program->activities->count() > 0)
                 <x-card>
-                    <h2 class="text-xl font-semibold text-lnu-blue mb-4">Activities ({{ $program->activities->count() }})</h2>
-                    <div class="space-y-3">
+                    <h2 class="text-lg font-semibold text-lnu-blue mb-3">Activities ({{ $program->activities->count() }})</h2>
+                    <div class="space-y-2">
                         @foreach ($program->activities as $activity)
-                        <div class="flex items-start gap-3 pb-3 border-b border-gray-200 last:border-b-0">
-                            <span class="inline-block capitalize px-3 py-1 rounded-full text-sm font-medium
-                                @if($activity->status === 'pending') bg-yellow-100 text-yellow-800
-                                @elseif($activity->status === 'ongoing') bg-green-100 text-green-800
-                                @else bg-blue-100 text-blue-800
-                                @endif">
-                                {{ $activity->status }}
-                            </span>
-                            <div>
-                                <p class="font-semibold text-gray-900">{{ $activity->title }}</p>
-                                <p class="text-sm text-gray-600">{{ $activity->description }}</p>
-                            </div>
-                        </div>
+                        <a href="{{ route('activities.show', $activity) }}" class="block text-blue-600 hover:text-blue-800 hover:underline transition">
+                            {{ $activity->title }}
+                        </a>
                         @endforeach
                     </div>
                 </x-card>
@@ -178,9 +181,14 @@
                     <h2 class="text-xl font-semibold text-lnu-blue mb-4">Attachments ({{ count($program->attachments) }})</h2>
                     <div class="space-y-2">
                         @foreach ($program->attachments as $attachment)
+                        {{-- Handle both new array format and old string format --}}
+                        @php
+                            $filePath = is_array($attachment) ? $attachment['path'] : $attachment;
+                            $fileName = is_array($attachment) ? $attachment['name'] : basename($attachment);
+                        @endphp
                         <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition">
                             <div class="flex items-center gap-3">
-                                @if (str_ends_with($attachment, '.pdf'))
+                                @if (str_ends_with($filePath, '.pdf'))
                                 <svg class="w-6 h-6 text-red-500" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"></path>
                                 </svg>
@@ -191,11 +199,11 @@
                                 </svg>
                                 @endif
                                 <div>
-                                    <p class="font-medium text-gray-900">{{ basename($attachment) }}</p>
-                                    <p class="text-xs text-gray-600">{{ strtoupper(pathinfo($attachment, PATHINFO_EXTENSION)) }} Document</p>
+                                    <p class="font-medium text-gray-900">{{ $fileName }}</p>
+                                    <p class="text-xs text-gray-600">{{ strtoupper(pathinfo($filePath, PATHINFO_EXTENSION)) }} Document</p>
                                 </div>
                             </div>
-                            <a href="{{ asset('storage/' . $attachment) }}" download class="inline-flex items-center gap-2 px-4 py-2 bg-lnu-blue text-white rounded-lg hover:bg-blue-800 transition text-sm font-medium">
+                            <a href="{{ asset('storage/' . $filePath) }}" download class="inline-flex items-center gap-2 px-4 py-2 bg-lnu-blue text-white rounded-lg hover:bg-blue-800 transition text-sm font-medium">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
@@ -229,47 +237,9 @@
                             <p class="text-2xl font-bold text-lnu-blue">{{ $program->target_beneficiaries }}</p>
                         </div>
 
-                        <div class="border-t border-gray-200 pt-4" x-data="{ showBudgetSources: false }">
-                            <div class="flex items-center justify-between mb-2">
-                                <p class="text-sm text-gray-600">Allocated Budget</p>
-                                <button type="button" 
-                                        class="text-gray-400 hover:text-lnu-blue transition-colors p-1 rounded hover:bg-gray-100"
-                                        title="View budget source details"
-                                        @click="showBudgetSources = !showBudgetSources">
-                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1a1 1 0 11-2 0 1 1 0 012 0zM8 8a1 1 0 000 2h6a1 1 0 100-2H8z" clip-rule="evenodd" />
-                                    </svg>
-                                </button>
-                            </div>
+                        <div class="border-t border-gray-200 pt-4">
+                            <p class="text-sm text-gray-600">Allocated Budget</p>
                             <p class="text-2xl font-bold text-lnu-gold">₱{{ number_format($program->allocated_budget, 2) }}</p>
-                            
-                            <!-- Budget Sources Summary (collapsible) -->
-                            <div x-show="showBudgetSources" 
-                                 x-transition 
-                                 class="mt-4 pt-4 border-t border-gray-200 space-y-3"
-                                 style="display: none;">
-                                @php
-                                $budgetSources = $program->budgetUtilizations()
-                                    ->whereNotNull('budget_source')
-                                    ->distinct('budget_source')
-                                    ->pluck('budget_source');
-                                @endphp
-                                
-                                @if($budgetSources->count() > 0)
-                                    <div class="space-y-2">
-                                        @foreach($budgetSources as $source)
-                                            <div class="bg-blue-50 rounded p-2 text-sm">
-                                                <p class="font-medium text-blue-900">{{ $source }}</p>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                    <a href="#budget-details" class="inline-block text-xs text-lnu-blue hover:underline font-medium">
-                                        View full details ↓
-                                    </a>
-                                @else
-                                    <p class="text-xs text-gray-500 italic">No budget source information recorded yet</p>
-                                @endif
-                            </div>
                         </div>
 
                         @if ($program->budgetUtilizations->count() > 0)
@@ -292,14 +262,20 @@
                         <div class="border-t border-gray-200 pt-4">
                             <p class="text-sm text-gray-600 mb-3">Partner Organizations</p>
                             @php
-                                $partners = is_array($program->partners) ? $program->partners : json_decode($program->partners, true) ?? [];
+                                $partnersList = $program->partners;
+                                if (!is_array($partnersList)) {
+                                    $partnersList = json_decode($partnersList, true) ?? [];
+                                }
+                                $partnersList = is_array($partnersList) ? $partnersList : [];
                             @endphp
-                            @if (!empty($partners) && count($partners) > 0)
+                            @if (!empty($partnersList) && count($partnersList) > 0)
                             <div class="flex flex-wrap gap-1">
-                                @foreach ($partners as $partner)
+                                @foreach ($partnersList as $partner)
+                                @if (is_string($partner) && !empty(trim($partner)))
                                 <span class="inline-block px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
-                                    {{ $partner }}
+                                    {{ trim($partner, ' "[]') }}
                                 </span>
+                                @endif
                                 @endforeach
                             </div>
                             @else
@@ -320,26 +296,6 @@
                         </div>
                     </div>
                 </x-card>
-
-                <!-- Partners -->
-                @if ($program->partners && is_array($program->partners) && count($program->partners) > 0)
-                <x-card>
-                    <h2 class="text-lg font-semibold text-lnu-blue mb-4">Partner Organizations</h2>
-                    <ul class="space-y-2">
-                        @foreach ($program->partners as $partner)
-                        <li class="flex items-center gap-2">
-                            <span class="w-2 h-2 bg-lnu-blue rounded-full"></span>
-                            <span class="text-sm">{{ $partner }}</span>
-                        </li>
-                        @endforeach
-                    </ul>
-                </x-card>
-                @endif
-
-                <!-- Back Button -->
-                <a href="{{ route('programs.index') }}" class="block w-full px-4 py-2 bg-gray-200 text-gray-900 rounded-lg text-center font-medium hover:bg-gray-300 transition">
-                    Back to Programs
-                </a>
             </div>
         </div>
 

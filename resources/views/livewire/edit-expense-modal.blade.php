@@ -127,6 +127,69 @@
                 </div>
             </div>
 
+            <!-- Attachments Section -->
+            <div class="space-y-4 pt-6 border-t">
+                <h4 class="text-lg font-semibold text-gray-800">Attachments <span class="text-gray-500 font-normal text-sm">(Optional - Max 3 files, 10MB each)</span></h4>
+
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50 hover:border-blue-500 hover:bg-blue-50 transition cursor-pointer" onclick="document.getElementById('file-upload').click()">
+                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <p class="text-gray-700 font-medium mb-1">Click or drag files to upload</p>
+                    <p class="text-xs text-gray-600">PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (Max 10MB each)</p>
+                    <input 
+                        id="file-upload"
+                        type="file" 
+                        wire:model="uploadedFiles"
+                        multiple
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                        class="hidden"
+                    />
+                </div>
+
+                <!-- Display uploaded files -->
+                @if(count($attachments) > 0)
+                    <div class="space-y-2 bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <p class="text-sm font-medium text-gray-800 mb-3">{{ count($attachments) }} file(s)</p>
+                        @foreach($attachments as $index => $attachment)
+                            <div class="bg-white border border-blue-200 rounded-lg p-3 flex justify-between items-center">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <svg class="w-5 h-5 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
+                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z"></path>
+                                    </svg>
+                                    <div class="flex-1">
+                                        <p class="font-medium text-gray-800 text-sm">
+                                            @if(isset($attachment['name']))
+                                                {{ $attachment['name'] }}
+                                            @else
+                                                {{ basename($attachment['path'] ?? $attachment) }}
+                                            @endif
+                                        </p>
+                                        @if(isset($attachment['size']))
+                                            <p class="text-xs text-gray-600">{{ number_format($attachment['size'] / 1024, 2) }} KB</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                <button 
+                                    type="button"
+                                    wire:click="removeAttachment({{ $index }})"
+                                    class="text-red-500 hover:text-red-700 p-1 ml-2 flex-shrink-0"
+                                >
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                @error('uploadedFiles')
+                    <span class="text-red-500 text-sm block">{{ $message }}</span>
+                @enderror
+            </div>
+
             <!-- People Involved Section -->
             <div class="space-y-4 pt-6 border-t">
                 <h4 class="text-lg font-semibold text-gray-800">People Involved <span class="text-gray-500 font-normal text-sm">(Optional)</span></h4>

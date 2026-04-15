@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\TimelineController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\ActivityController;
@@ -37,12 +38,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/programs/{program}/metrics', function (\App\Models\ExtensionProgram $program) {
         return view('programs.metrics', ['program' => $program]);
     })->name('programs.metrics');
+    Route::get('/programs/{program}/timeline', [TimelineController::class, 'show'])->name('programs.timeline');
 
     // Community routes
     Route::resource('communities', CommunityController::class);
     Route::get('/communities-search', [CommunityController::class, 'search'])->name('communities.search');
     Route::get('/communities-filter/{status}', [CommunityController::class, 'filterByStatus'])->name('communities.filter');
     Route::get('/communities/{community}/assessment-summary', [\App\Http\Controllers\AssessmentSummaryController::class, 'show'])->name('communities.assessment-summary');
+    Route::post('/communities/{community}/regenerate-analysis', [\App\Http\Controllers\AssessmentSummaryController::class, 'regenerateAnalysis'])->name('communities.regenerate-analysis');
 
     // Beneficiary routes
     Route::resource('beneficiaries', BeneficiaryController::class);
@@ -67,8 +70,6 @@ Route::middleware('auth')->group(function () {
 
     // Faculty routes (Director only)
     Route::resource('faculties', FacultyController::class);
-    Route::post('/faculties/{faculty}/generate-token', [FacultyController::class, 'generateToken'])->name('faculties.generateToken');
-    Route::delete('/tokens/{token}/revoke', [FacultyController::class, 'revokeToken'])->name('tokens.revoke');
 
     // Faculty availability approval (Director only)
     Route::middleware('auth')->group(function () {
@@ -92,6 +93,37 @@ Route::middleware('auth')->group(function () {
         Route::get('/faculty/availability', [FacultyAvailabilityController::class, 'index'])->name('faculty.availability.index');
         Route::post('/faculty/availability', [FacultyAvailabilityController::class, 'store'])->name('faculty.availability.store');
         Route::delete('/faculty/availability/{availability}', [FacultyAvailabilityController::class, 'destroy'])->name('faculty.availability.destroy');
+        
+        // Activity Proposals
+        Route::get('/proposals', function () {
+            return view('proposals.index');
+        })->name('proposals.index');
+        Route::get('/proposals/create', function () {
+            return view('proposals.create');
+        })->name('proposals.create');
+        Route::get('/proposals/{proposal}', function () {
+            return view('proposals.show');
+        })->name('proposals.show');
+    });
+
+    // Admin Proposal Approvals (Director/Admin only)
+    Route::middleware('director')->group(function () {
+        Route::get('/admin/proposals', function () {
+            return view('admin.approvals.index');
+        })->name('admin.proposals.index');
+        Route::get('/admin/proposals/{proposal}', function () {
+            return view('admin.approvals.show');
+        })->name('admin.proposals.show');
+    });
+
+    // Secretary Assessment Approvals (Secretary only)
+    Route::middleware('secretary')->group(function () {
+        Route::get('/secretary/assessments', function () {
+            return view('secretary.approvals.index');
+        })->name('secretary.assessments.index');
+        Route::get('/secretary/assessments/{assessment}', function () {
+            return view('secretary.approvals.show');
+        })->name('secretary.assessments.show');
     });
 
     // Calendar API endpoints (Faculty, Director, Secretary)

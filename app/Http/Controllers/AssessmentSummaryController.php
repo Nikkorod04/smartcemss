@@ -4,11 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Community;
 use App\Models\AssessmentSummary;
+use App\Services\CommunityAnalysisService;
 use Illuminate\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 
 class AssessmentSummaryController extends Controller
 {
+    protected $analysisService;
+
+    public function __construct(CommunityAnalysisService $analysisService)
+    {
+        $this->analysisService = $analysisService;
+    }
+
     /**
      * Display the assessment summary for a community
      */
@@ -67,6 +76,27 @@ class AssessmentSummaryController extends Controller
             'assessments' => $assessments,
             'chartData' => $chartData,
         ]);
+    }
+
+    /**
+     * Regenerate AI analysis for a community's assessment summary
+     */
+    public function regenerateAnalysis(Community $community, Request $request): RedirectResponse
+    {
+        $quarter = $request->input('quarter');
+        $year = $request->input('year');
+
+        if (!$quarter || !$year) {
+            return redirect()->back()->with('error', 'Quarter and year are required.');
+        }
+
+        try {
+            $this->analysisService->generateAnalysis($community, $quarter, (int)$year);
+
+            return redirect()->back()->with('success', 'AI analysis has been regenerated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to generate AI analysis: ' . $e->getMessage());
+        }
     }
 
     private function generateChartData($assessments)

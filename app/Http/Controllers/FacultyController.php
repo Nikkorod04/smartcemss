@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Faculty;
-use App\Models\ExtensionToken;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class FacultyController extends Controller
 {
@@ -98,13 +96,9 @@ class FacultyController extends Controller
             abort(403, 'Unauthorized. Only Directors can manage faculty.');
         }
 
-        $faculty->load('user', 'tokens', 'extensionPrograms', 'activities', 'availabilities');
-        $activeTokens = $faculty->tokens()->where(function ($query) {
-            $query->whereNull('expires_at')
-                ->orWhere('expires_at', '>', now());
-        })->get();
+        $faculty->load('user', 'extensionPrograms', 'activities', 'availabilities');
 
-        return view('faculties.show', compact('faculty', 'activeTokens'));
+        return view('faculties.show', compact('faculty'));
     }
 
     /**
@@ -189,74 +183,5 @@ class FacultyController extends Controller
 
         return redirect()->route('faculties.index')
             ->with('success', 'Faculty member deleted successfully.');
-    }
-
-    /**
-     * Generate a new access token for faculty member (Director chooses expiration)
-     */
-    public function generateToken(Request $request, Faculty $faculty)
-    {
-        if (auth()->user()->role !== 'director') {
-            abort(403, 'Unauthorized. Only Directors can manage faculty.');
-        }
-
-        $validated = $request->validate([
-            'expires_at' => 'nullable|date|after_or_equal:today',
-            'expires_in_days' => 'nullable|integer|min:1|max:1095', // Up to 3 years
-        ]);
-
-        $expiresAt = null;
-
-        // Either explicit date or calculated from days
-        if ($validated['expires_at'] ?? null) {
-            $expiresAt = \Carbon\Carbon::parse($validated['expires_at'])->endOfDay();
-        } elseif ($validated['expires_in_days'] ?? null) {
-            $expiresAt = now()->addDays($validated['expires_in_days'])->endOfDay();
-        }
-
-        // Generate unique token
-        $token = Str::random(64);
-
-        // Create token record
-        $extensionToken = ExtensionToken::create([
-            'faculty_id' => $faculty->id,
-            'token' => $token,
-            'expires_at' => $expiresAt,
-            'generated_by' => auth()->id(),
-        ]);
-
-        activity()
-            ->causedBy(auth()->user())
-            ->performedOn($extensionToken)
-            ->event('created')
-            ->log('Access token generated for faculty: ' . $faculty->user->name . 
-                  '. Expires: ' . ($expiresAt ? $expiresAt->format('M d, Y') : 'Never'));
-
-        return redirect()->route('faculties.show', $faculty)
-            ->with('success', 'Access token generated successfully.')
-            ->with('token', $token)
-            ->with('tokenDisplay', true);
-    }
-
-    /**
-     * Revoke an access token
-     */
-    public function revokeToken(ExtensionToken $token)
-    {
-        if (auth()->user()->role !== 'director') {
-            abort(403, 'Unauthorized. Only Directors can manage faculty.');
-        }
-
-        $faculty = $token->faculty;
-        $token->delete();
-
-        activity()
-            ->causedBy(auth()->user())
-            ->performedOn($token)
-            ->event('deleted')
-            ->log('Access token revoked for faculty: ' . $faculty->user->name);
-
-        return redirect()->route('faculties.show', $faculty)
-            ->with('success', 'Access token revoked successfully.');
     }
 }

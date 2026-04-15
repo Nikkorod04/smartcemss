@@ -34,6 +34,10 @@ class AssessmentSummary extends Model
         'training_availability_percentage',
         'avg_service_satisfaction',
         'baseline_satisfaction_score',
+        'ai_analysis',
+        'ai_interventions',
+        'ai_analysis_sections',
+        'ai_analysis_generated_at',
         'last_calculated_at',
     ];
 
@@ -52,6 +56,9 @@ class AssessmentSummary extends Model
         'security_problems' => 'json',
         'water_sources' => 'json',
         'house_types' => 'json',
+        'ai_interventions' => 'json',
+        'ai_analysis_sections' => 'json',
+        'ai_analysis_generated_at' => 'datetime',
         'last_calculated_at' => 'datetime',
     ];
 

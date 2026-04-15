@@ -5,10 +5,13 @@ namespace App\Livewire;
 use App\Models\BudgetUtilization;
 use App\Models\ExtensionProgram;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\On;
 
 class AddExpenseModal extends Component
 {
+    use WithFileUploads;
+
     public $programId;
     public $program;
     public $activities = [];
@@ -18,7 +21,8 @@ class AddExpenseModal extends Component
     public $amount = '';
     public $description = '';
     public $transaction_type = 'expense';
-    public $attachment = '';
+    public $attachments = [];
+    public $uploadedFiles = [];
     
     // Budget Source Fields
     public $budget_source = '';
@@ -110,6 +114,31 @@ class AddExpenseModal extends Component
         $this->offices_involved = array_values($this->offices_involved);
     }
 
+    public function updatedUploadedFiles()
+    {
+        if (count($this->uploadedFiles) > 3) {
+            $this->addError('uploadedFiles', 'Maximum 3 files allowed');
+            array_pop($this->uploadedFiles);
+            return;
+        }
+
+        foreach ($this->uploadedFiles as $file) {
+            $this->attachments[] = [
+                'file' => $file,
+                'name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+            ];
+        }
+        
+        $this->uploadedFiles = [];
+    }
+
+    public function removeAttachment($index)
+    {
+        unset($this->attachments[$index]);
+        $this->attachments = array_values($this->attachments);
+    }
+
     public function saveExpense()
     {
         $this->validate([
@@ -120,6 +149,19 @@ class AddExpenseModal extends Component
         ]);
 
         try {
+            $attachmentPaths = [];
+            
+            // Store uploaded files
+            foreach ($this->attachments as $attachment) {
+                if (isset($attachment['file'])) {
+                    $path = $attachment['file']->store('budget-utilizations/attachments', 'public');
+                    $attachmentPaths[] = [
+                        'path' => $path,
+                        'name' => $attachment['name'],
+                    ];
+                }
+            }
+
             BudgetUtilization::create([
                 'extension_program_id' => $this->programId,
                 'activity_id' => $this->activity_id ?: null,
@@ -127,6 +169,7 @@ class AddExpenseModal extends Component
                 'amount' => $this->amount,
                 'description' => $this->description,
                 'transaction_type' => $this->transaction_type,
+                'attachment' => count($attachmentPaths) > 0 ? $attachmentPaths : null,
                 'budget_source' => $this->budget_source,
                 'source_description' => $this->source_description,
                 'people_involved' => count($this->people_involved) > 0 ? $this->people_involved : null,
@@ -161,7 +204,7 @@ class AddExpenseModal extends Component
     public function resetForm()
     {
         $this->reset(['date_spent', 'amount', 'description', 'transaction_type', 'budget_source', 
-                     'source_description', 'approval_status', 'people_involved', 'offices_involved', 'activity_id']);
+                     'source_description', 'approval_status', 'people_involved', 'offices_involved', 'activity_id', 'attachments', 'uploadedFiles']);
         $this->date_spent = now()->format('Y-m-d');
     }
 
@@ -170,3 +213,4 @@ class AddExpenseModal extends Component
         return view('livewire.add-expense-modal');
     }
 }
+

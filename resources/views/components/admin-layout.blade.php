@@ -72,6 +72,28 @@
                         <span>Calendar</span>
                     </a>
 
+                    <!-- Proposal Approvals (Director/Admin) -->
+                    @if(auth()->user()->role === 'director')
+                    <a href="{{ route('admin.proposals.index') }}" class="sidebar-item {{ request()->routeIs('admin.proposals.*') ? 'active' : '' }}">
+                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V6a1 1 0 00-1-1h-3a1 1 0 000-2 2 2 0 00-2-2H6a2 2 0 00-2 2zM9 9a1 1 0 000 2h6a1 1 0 000-2H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Proposal Approvals</span>
+                    </a>
+                    @endif
+
+                    <!-- Assessment Approvals (Secretary) -->
+                    @if(auth()->user()->role === 'secretary')
+                    <a href="{{ route('secretary.assessments.index') }}" class="sidebar-item {{ request()->routeIs('secretary.assessments.*') ? 'active' : '' }}">
+                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V6a1 1 0 00-1-1h-3a1 1 0 000-2 2 2 0 00-2-2H6a2 2 0 00-2 2zM9 9a1 1 0 000 2h6a1 1 0 000-2H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Assessment Approvals</span>
+                    </a>
+                    @endif
+
                     <!-- Reports -->
                     <a href="#" class="sidebar-item hover:bg-gray-100">
                         <img src="{{ asset('icons/reports.png') }}" alt="Reports" class="w-5 h-5 object-contain">

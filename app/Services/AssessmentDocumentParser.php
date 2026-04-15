@@ -49,6 +49,7 @@ class AssessmentDocumentParser
         return match ($extension) {
             'xlsx', 'xls' => $this->parseExcel($file),
             'csv' => $this->parseCsv($file),
+            'docx' => $this->parseDocx($file),
             'pdf' => $this->parsePdf($file),
             'jpg', 'jpeg', 'png' => $this->parseImage($file),
             default => ['error' => 'Unsupported file type'],
@@ -70,6 +71,7 @@ class AssessmentDocumentParser
             'pdf' => $this->parsePdfFromPath($filePath),
             'xlsx', 'xls' => $this->parseExcelFromPath($filePath),
             'csv' => $this->parseCsvFromPath($filePath),
+            'docx' => $this->parseDocxFromPath($filePath),
             default => ['error' => 'Unsupported file type: ' . $extension],
         };
     }
@@ -243,6 +245,106 @@ class AssessmentDocumentParser
                 'message' => $e->getMessage()
             ]);
             return ['success' => false, 'error' => 'Failed to process image: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Parse DOCX file and extract text
+     */
+    protected function parseDocx(UploadedFile $file): array
+    {
+        try {
+            $phpWord = \PhpOffice\PhpWord\IOFactory::load($file->getRealPath());
+            $text = '';
+            
+            // Extract text from all sections
+            foreach ($phpWord->getSections() as $section) {
+                foreach ($section->getElements() as $element) {
+                    if (method_exists($element, 'getText')) {
+                        $text .= $element->getText() . "\n";
+                    } elseif ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
+                        $text .= $element->getText() . "\n";
+                    } elseif ($element instanceof \PhpOffice\PhpWord\Element\Paragraph) {
+                        foreach ($element->getElements() as $childElement) {
+                            if ($childElement instanceof \PhpOffice\PhpWord\Element\TextRun) {
+                                $text .= $childElement->getText();
+                            }
+                        }
+                        $text .= "\n";
+                    }
+                }
+            }
+            
+            // Clean up the text
+            $text = trim($text);
+            
+            if (empty($text)) {
+                return ['success' => false, 'error' => 'No text content found in DOCX file'];
+            }
+            
+            return [
+                'success' => true,
+                'data' => [['content' => $text]],
+                'text' => $text,
+                'type' => 'docx',
+                'raw_text' => $text
+            ];
+        } catch (\Exception $e) {
+            \Log::error('DOCX parsing failed', [
+                'exception' => get_class($e),
+                'message' => $e->getMessage()
+            ]);
+            return ['success' => false, 'error' => 'Failed to parse DOCX: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Parse DOCX from file path
+     */
+    protected function parseDocxFromPath(string $filePath): array
+    {
+        try {
+            $phpWord = \PhpOffice\PhpWord\IOFactory::load($filePath);
+            $text = '';
+            
+            // Extract text from all sections
+            foreach ($phpWord->getSections() as $section) {
+                foreach ($section->getElements() as $element) {
+                    if (method_exists($element, 'getText')) {
+                        $text .= $element->getText() . "\n";
+                    } elseif ($element instanceof \PhpOffice\PhpWord\Element\TextRun) {
+                        $text .= $element->getText() . "\n";
+                    } elseif ($element instanceof \PhpOffice\PhpWord\Element\Paragraph) {
+                        foreach ($element->getElements() as $childElement) {
+                            if ($childElement instanceof \PhpOffice\PhpWord\Element\TextRun) {
+                                $text .= $childElement->getText();
+                            }
+                        }
+                        $text .= "\n";
+                    }
+                }
+            }
+            
+            // Clean up the text
+            $text = trim($text);
+            
+            if (empty($text)) {
+                return ['success' => false, 'error' => 'No text content found in DOCX file'];
+            }
+            
+            return [
+                'success' => true,
+                'data' => [['content' => $text]],
+                'text' => $text,
+                'type' => 'docx',
+                'raw_text' => $text
+            ];
+        } catch (\Exception $e) {
+            \Log::error('DOCX parsing from path failed', [
+                'exception' => get_class($e),
+                'message' => $e->getMessage()
+            ]);
+            return ['success' => false, 'error' => 'Failed to parse DOCX: ' . $e->getMessage()];
         }
     }
 

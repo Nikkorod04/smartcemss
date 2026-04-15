@@ -128,7 +128,7 @@ class CalendarController extends Controller
             foreach ($programs as $program) {
                 $events[] = [
                     'id' => 'program-' . $program->id,
-                    'title' => $program->title . ' (By: ' . $program->programLead->user->name . ')',
+                    'title' => $program->title,
                     'start' => $program->planned_start_date,
                     'end' => $program->planned_end_date,
                     'type' => 'program',
